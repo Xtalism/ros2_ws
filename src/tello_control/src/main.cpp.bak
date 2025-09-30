@@ -122,19 +122,7 @@ class TelloControl : public rclcpp::Node
 			cv::imshow("Tello", image);	
 
 			int key = cv::waitKey(15);
-
-			static int tick_count = 0;
-			static bool twist_direction = false;
-
-			// Every 5 seconds (assuming timer period is 1ms)
-			if (++tick_count >= 5000) {
-				geometry_msgs::msg::Twist msg;
-				msg.angular.z = twist_direction ? 50 : -50;
-				publisher_velocity->publish(msg);
-				twist_direction = !twist_direction;
-				tick_count = 0;
-			}
-
+			
 			if (key != NO_KEY)
 			{
 				// Takeoff

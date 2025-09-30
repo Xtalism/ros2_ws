@@ -4,6 +4,8 @@ import subprocess
 
 from launch import LaunchDescription
 from launch.actions import LogInfo, OpaqueFunction, Shutdown
+
+# from launch.actions import ExecuteProcess
 from launch_ros.actions import Node
 
 # SSID_OBJETIVO = "TELLO-9A0D42"
@@ -129,5 +131,7 @@ def generate_launch_description() -> LaunchDescription:
     )
 
     ld.add_action(imu_filter_node)
+
+    # ld.add_action(ExecuteProcess(cmd=["ros2", "bag", "record", "-a"], output="screen"))
 
     return ld
