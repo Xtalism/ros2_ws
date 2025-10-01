@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'mcap_python'
+package_name = 'rosbag2_mcap'
 
 setup(
     name=package_name,
@@ -24,9 +24,9 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'read_rosbag2 = mcap_python.read_rosbag2:main',
-            'csv_rosbag2 = mcap_python.csv_rosbag2:main',
-            'graph_rosbag2 = mcap_python.graph_rosbag2:main',
+            'read_rosbag2 = rosbag2_mcap.read_rosbag2:main',
+            'csv_rosbag2 = rosbag2_mcap.csv_rosbag2:main',
+            'graph_rosbag2 = rosbag2_mcap.graph_rosbag2:main',
         ],
     },
 )

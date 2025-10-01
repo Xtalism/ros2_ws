@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 
 import cv2
@@ -28,7 +29,7 @@ class ImagePublisher(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    image_path = os.path.expanduser("~/ros2_ws/kanye.jpg")
+    image_path = os.path.expanduser("~/ros2_ws/pictures/kanye.jpg")
     node = ImagePublisher(image_path)
     rclpy.spin(node)
     node.destroy_node()

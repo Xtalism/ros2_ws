@@ -47,12 +47,10 @@ def main():
     )
     parser.add_argument(
         "--topic", 
-        default="/temperature", 
-        help="topic name to read from (default: /temperature)"
+        help="topic name to read from"
     )
     parser.add_argument(
         "--field",
-        default="temperature",
         help="message field to plot (supports dot notation for nested fields, e.g., 'linear.x')"
     )
     parser.add_argument(

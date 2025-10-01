@@ -8,8 +8,8 @@ from launch.actions import LogInfo, OpaqueFunction, Shutdown
 # from launch.actions import ExecuteProcess
 from launch_ros.actions import Node
 
-# SSID_OBJETIVO = "TELLO-9A0D42"
-SSID_OBJETIVO = "ConectaUACJ"
+SSID_OBJETIVO = "TELLO-9A0D42"
+# SSID_OBJETIVO = "ConectaUACJ"
 # SSID_OBJETIVO = "MotherBase"
 
 

@@ -39,141 +39,163 @@ using namespace std::chrono_literals;
 
 class TelloControl : public rclcpp::Node
 {
-	public:
-		/**
-		 * Store the last key pressed when controlling the drone manually.
-		 *
-		 * Used to detect changes in key pressed.
-		 */
-		int last_key = NO_KEY;
+    public:
+        /**
+         * Store the last key pressed when controlling the drone manually.
+         *
+         * Used to detect changes in key pressed.
+         */
+        int last_key = NO_KEY;
 
-		/**
-		 * Timer used to control the execution speed of the node.
-		 */
-		rclcpp::TimerBase::SharedPtr timer;
+        /**
+         * Timer used to control the execution speed of the node.
+         */
+        rclcpp::TimerBase::SharedPtr timer;
 
-		/**
-		 * Publish drone control velocity.
-		 */
-		rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_velocity;
+        /**
+         * Timer for automatic twist every 5 seconds.
+         */
+        rclcpp::TimerBase::SharedPtr twist_timer;
 
-		/**
-		 * Publish takeoff control.
-		 */
-		rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr publisher_takeoff;
+        /**
+         * Flag to track twist direction (true = clockwise, false = counter-clockwise).
+         */
+        bool twist_clockwise = true;
 
-		/**
-		 * Publisher for drone flip commands.
-		 */
-		rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_flip;
+        /**
+         * Publish drone control velocity.
+         */
+        rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_velocity;
 
-		/**
-		 * Publisher for landing controls.
-		 */
-		rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr publisher_land;
+        /**
+         * Publish takeoff control.
+         */
+        rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr publisher_takeoff;
 
-		/**
-		 * Publisher for emergency stop.
-		 */
-		rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr publisher_emergency;
+        /**
+         * Publisher for drone flip commands.
+         */
+        rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_flip;
 
-		/**
-		 * Construct a new Tello Control object
-		 */
-		TelloControl() : Node("control")
-		{
-			publisher_land = this->create_publisher<std_msgs::msg::Empty>("land", 1);
-			publisher_flip = this->create_publisher<std_msgs::msg::String>("flip", 1);
-			publisher_takeoff = this->create_publisher<std_msgs::msg::Empty>("takeoff", 1);
-			publisher_velocity = this->create_publisher<geometry_msgs::msg::Twist>("control", 1);
-			publisher_emergency = this->create_publisher<std_msgs::msg::Empty>("emergency", 1);
+        /**
+         * Publisher for landing controls.
+         */
+        rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr publisher_land;
 
-			timer = this->create_wall_timer(1ms, std::bind(&TelloControl::timerCallback, this));
-		}
+        /**
+         * Publisher for emergency stop.
+         */
+        rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr publisher_emergency;
 
-		/**
-		 * Method to control the drone using the keyboard inputs.
-		 *
-		 * @param key Keycode received.
-		 */
-		void manualControl(int key)
-		{
-			// Speed of the drone in manual control mode.
-			double manual_speed = 50;
+        /**
+         * Construct a new Tello Control object
+         */
+        TelloControl() : Node("control")
+        {
+            publisher_land = this->create_publisher<std_msgs::msg::Empty>("land", 1);
+            publisher_flip = this->create_publisher<std_msgs::msg::String>("flip", 1);
+            publisher_takeoff = this->create_publisher<std_msgs::msg::Empty>("takeoff", 1);
+            publisher_velocity = this->create_publisher<geometry_msgs::msg::Twist>("control", 1);
+            publisher_emergency = this->create_publisher<std_msgs::msg::Empty>("emergency", 1);
 
-			geometry_msgs::msg::Twist msg = geometry_msgs::msg::Twist();
-		
-			if(key == KEY_LEFT) {msg.linear.x = -manual_speed;}
-			if(key == KEY_RIGHT) {msg.linear.x = +manual_speed;}
-			if(key == KEY_UP) {msg.linear.y = manual_speed;}
-			if(key == KEY_DOWN) {msg.linear.y = -manual_speed;}
-			if(key == (int)('w')) {msg.linear.z = manual_speed;}
-			if(key == (int)('s')) {msg.linear.z = -manual_speed;}
-			if(key == (int)('a')) {msg.angular.z = -manual_speed;}
-			if(key == (int)('d')) {msg.angular.z = manual_speed;}
+            timer = this->create_wall_timer(1ms, std::bind(&TelloControl::timerCallback, this));
+            twist_timer = this->create_wall_timer(10s, std::bind(&TelloControl::twistCallback, this));
+        }
 
-			publisher_velocity->publish(msg);
-		}
+        /**
+         * Callback for automatic twist every 5 seconds.
+         */
+        void twistCallback()
+        {
+            double manual_speed = 50;
+            geometry_msgs::msg::Twist msg = geometry_msgs::msg::Twist();
+            
+            if (twist_clockwise) {
+                msg.angular.z = manual_speed;  // Clockwise rotation
+            } else {
+                msg.angular.z = -manual_speed; // Counter-clockwise rotation
+            }
+            
+            publisher_velocity->publish(msg);
+            
+            // Alternate direction for next twist
+            twist_clockwise = !twist_clockwise;
+            
+            RCLCPP_INFO(this->get_logger(), "Auto twist: %s", 
+                twist_clockwise ? "next will be clockwise" : "next will be counter-clockwise");
+        }
 
-		void timerCallback()
-		{
-			cv::Mat image = cv::Mat::zeros(100, 100, CV_8UC3);
-			cv::namedWindow("Tello", cv::WINDOW_AUTOSIZE);
-			cv::imshow("Tello", image);	
+        /**
+         * Method to control the drone using the keyboard inputs.
+         *
+         * @param key Keycode received.
+         */
+        void manualControl(int key)
+        {
+            // Speed of the drone in manual control mode.
+            double manual_speed = 50;
 
-			int key = cv::waitKey(15);
+            geometry_msgs::msg::Twist msg = geometry_msgs::msg::Twist();
+        
+            if(key == KEY_LEFT) {msg.linear.x = -manual_speed;}
+            if(key == KEY_RIGHT) {msg.linear.x = +manual_speed;}
+            if(key == KEY_UP) {msg.linear.y = manual_speed;}
+            if(key == KEY_DOWN) {msg.linear.y = -manual_speed;}
+            if(key == (int)('w')) {msg.linear.z = manual_speed;}
+            if(key == (int)('s')) {msg.linear.z = -manual_speed;}
+            // Removed manual 'a' and 'd' controls for angular.z
 
-			static int tick_count = 0;
-			static bool twist_direction = false;
+            publisher_velocity->publish(msg);
+        }
 
-			// Every 5 seconds (assuming timer period is 1ms)
-			if (++tick_count >= 5000) {
-				geometry_msgs::msg::Twist msg;
-				msg.angular.z = twist_direction ? 50 : -50;
-				publisher_velocity->publish(msg);
-				twist_direction = !twist_direction;
-				tick_count = 0;
-			}
+        void timerCallback()
+        {
+            cv::Mat image = cv::Mat::zeros(100, 100, CV_8UC3);
+            cv::namedWindow("Tello", cv::WINDOW_AUTOSIZE);
+            cv::imshow("Tello", image);	
 
-			if (key != NO_KEY)
-			{
-				// Takeoff
-				if(key == (int)('t'))
-				{
-					publisher_takeoff->publish(std_msgs::msg::Empty());
-				}
-				// Land
-				else if(key == (int)('l'))
-				{
-					publisher_land->publish(std_msgs::msg::Empty());
-				}
-				// Flip
-				else if(key == (int)('f'))
-				{
-					std_msgs::msg::String msg = std_msgs::msg::String();
-					msg.data = 'f';
-					publisher_flip->publish(msg);
-				}
-				// Emergency Stop
-				else if(key == (int)('e'))
-				{
-					publisher_emergency->publish(std_msgs::msg::Empty());
-				}
-				else
-				{
-					manualControl(key);
-				}
-			}
+            int key = cv::waitKey(15);
+            
+            if (key != NO_KEY)
+            {
+                // Takeoff
+                if(key == (int)('t'))
+                {
+                    publisher_takeoff->publish(std_msgs::msg::Empty());
+                }
+                // Land
+                else if(key == (int)('l'))
+                {
+                    publisher_land->publish(std_msgs::msg::Empty());
+                }
+                // Flip
+                else if(key == (int)('f'))
+                {
+                    std_msgs::msg::String msg = std_msgs::msg::String();
+                    msg.data = 'f';
+                    publisher_flip->publish(msg);
+                }
+                // Emergency Stop
+                else if(key == (int)('e'))
+                {
+                    publisher_emergency->publish(std_msgs::msg::Empty());
+                }
+                else
+                {
+                    manualControl(key);
+                }
+            }
 
-			// Store last key for diffs
-			last_key = key;
-		}
+            // Store last key for diffs
+            last_key = key;
+        }
 };
 
 int main(int argc, char * argv[])
 {
-	rclcpp::init(argc, argv);
-	rclcpp::spin(std::make_shared<TelloControl>());
-	rclcpp::shutdown();
-	return 0;
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<TelloControl>());
+    rclcpp::shutdown();
+    return 0;
 }
+
