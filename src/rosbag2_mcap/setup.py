@@ -25,8 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'read_rosbag2 = rosbag2_mcap.read_rosbag2:main',
-            'csv_rosbag2 = rosbag2_mcap.csv_rosbag2:main',
-            'graph_rosbag2 = rosbag2_mcap.graph_rosbag2:main',
+            'export_rosbag2 = rosbag2_mcap.export_rosbag2:main',
         ],
     },
 )
