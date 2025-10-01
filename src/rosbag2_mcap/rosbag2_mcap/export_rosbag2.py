@@ -105,7 +105,8 @@ def stats_rosbag2(args):
 
 def graph_rosbag2():
     args = parse_args()
-    stats = stats_rosbag2(args)
+    stats = stats_rosbag2(args)    
+    print("To save graph --output FILENAME [--filetype FILETYPE (optional) -> default: png]")
 
     if stats is None:
         return
@@ -157,7 +158,7 @@ def csv_rosbag2():
     avg_value, min_value, max_value, values, relative_times = stats
     
     if not args.output:
-        raise ValueError("Error: --output FILENAME is required for CSV export.")
+        raise ValueError("Error: --output FILENAME [required for CSV export]")
         return
     
     with open(f"{args.output}.csv", 'w', newline='') as f:
