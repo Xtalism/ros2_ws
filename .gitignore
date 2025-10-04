@@ -16,12 +16,10 @@ msg/*Goal.msg
 msg/*Result.msg
 msg/_*.py
 build_isolated/
+latex_data/
 devel_isolated/
-data_report/
 rosbag_data/
 .vscode/
-*.csv
-*.pdf
 CameraTrajectory.txt
 KeyFrameTrajectory.txt
 
