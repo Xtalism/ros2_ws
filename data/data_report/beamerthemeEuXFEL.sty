@@ -1,0 +1,185 @@
+% Copyright 2007 by Till Tantau
+%
+% This file may be distributed and/or modified
+%
+% 1. under the LaTeX Project Public License and/or
+% 2. under the GNU Public License.
+%
+% See the file doc/licenses/LICENSE for more details.
+
+
+\mode<presentation>
+
+\ProvidesPackage{beamerthemeEuXFEL}[]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%  Text margins
+%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%  itemize bullets
+%%
+\setbeamertemplate{itemize item}{\raisebox{0.2mm}{\includegraphics[scale=0.55,keepaspectratio]{item.pdf}}}
+\setbeamertemplate{itemize subitem}{\raisebox{0.2mm}{\includegraphics[scale=0.55,keepaspectratio]{subitem.pdf}}}
+\setbeamertemplate{itemize subsubitem}{\includegraphics[scale=0.55,keepaspectratio]{subsubitem.pdf}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%  Fonts
+%%
+\setbeamerfont{title}{series=\fontseries{b}\LARGE\selectfont}
+\setbeamerfont{frametitle}{series=\fontseries{b}\selectfont}
+\setbeamerfont{block title}{series=\fontseries{b}\selectfont}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%  Title Page
+%%
+\setbeamertemplate{title page}
+{
+  \begingroup
+  \makebox[\linewidth]{
+    \parbox[t]{0.7\pdfpagewidth}{
+    \begin{beamercolorbox}[wd=0.65\pdfpagewidth,sep=7pt,left]{title}
+      \usebeamerfont{title}\inserttitle\par%
+      \ifx\insertsubtitle\@empty%
+      \else%
+        \vskip0.25em%
+        {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\insertsubtitle\par}%
+      \fi%     
+    \end{beamercolorbox}
+    
+    \begin{beamercolorbox}[wd=0.7\pdfpagewidth,sep=7pt,left]{author}
+      \usebeamerfont{author}\insertauthor
+    \end{beamercolorbox}
+    \vspace{-3mm}
+    \begin{beamercolorbox}[wd=0.7\pdfpagewidth,sep=8pt,left]{institute}
+      \usebeamerfont{institute}\insertinstitute
+    \end{beamercolorbox}
+    \begin{beamercolorbox}[wd=0.7\pdfpagewidth,sep=8pt,left]{date}
+      \usebeamerfont{date}\insertdate{}\\
+    \end{beamercolorbox}
+  }%
+    \begin{beamercolorbox}[wd=0.2\pdfpagewidth,ht=0.16\pdfpagewidth,dp=0mm,sep=7pt,right]{}
+      % \includegraphics[keepaspectratio]{euxfel_logo.pdf}
+      \vfill
+    \end{beamercolorbox}%    
+%    \vskip0pt%
+%    \vskip1em\par
+}
+%    {\usebeamercolor[fg]{titlegraphic}\inserttitlegraphic\par}
+    \endgroup
+    \vfill
+  }
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%  Frametitle
+%%
+\setbeamertemplate{frametitle}
+{
+  \ifbeamercolorempty[bg]{frametitle}{}{\nointerlineskip}%
+  \@tempdima=\textwidth%
+  \advance\@tempdima by\Gm@lmargin%
+  \advance\@tempdima by\Gm@rmargin%
+  \begin{beamercolorbox}[sep=0.6cm,left,wd=\the\@tempdima]{frametitle}
+    \usebeamerfont{frametitle}%
+    \vbox{}\vskip-1ex%
+    \if@tempswa\else\csname beamer@fteleft\endcsname\fi%
+    \hspace{0.42cm}\strut\insertframetitle\strut\par%
+    {%
+      \ifx\insertframesubtitle\@empty%
+      \else%
+      {\usebeamerfont{framesubtitle}\usebeamercolor[fg]{framesubtitle}\strut\insertframesubtitle\strut\par}%
+      \fi
+    }%
+    \vskip-1ex%
+    \if@tempswa\else\vskip-.3cm\fi% set inside beamercolorbox... evil here...
+  \end{beamercolorbox}%
+}
+
+%\insertframetitle
+%\def\beamer@fteright{\vskip0.35cm\advance\leftskip by 1.7cm\advance\rightskip by1.7cm}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%  Header & Footer
+%%
+%\setbeamercolor*{author in head/foot}{parent=palette tertiary}
+%\setbeamercolor*{title in head/foot}{parent=palette secondary}
+%\setbeamercolor*{date in head/foot}{parent=palette primary}
+
+%\setbeamercolor*{section in head/foot}{parent=palette tertiary}
+%\setbeamercolor*{subsection in head/foot}{parent=palette primary}
+
+\setbeamertemplate{page number in head/foot}[totalframenumber]%
+
+\defbeamertemplate*{footline}{infolines theme}
+{%
+  \leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[wd=.06\paperwidth,ht=5mm,dp=1.5ex,right]{author in head/foot}%
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.425\paperwidth,ht=5mm,dp=1.5ex,left]{section in head/foot}%
+      \raisebox{2mm}{\includegraphics[scale=0.55]{footer.pdf}}
+    \end{beamercolorbox}}%
+  \begin{beamercolorbox}[wd=.469\paperwidth,ht=5mm,dp=1.5ex,right]{author in head/foot}%
+    \hbox{%
+      \hbox{\insertslidenavigationsymbol}
+      \hbox{\insertframenavigationsymbol}
+      \hbox{\insertsubsectionnavigationsymbol}
+      \hbox{\insertsectionnavigationsymbol}
+      \hbox{\insertdocnavigationsymbol}
+      \hbox{\insertbackfindforwardnavigationsymbol}%
+    }%
+  \end{beamercolorbox}%
+%    \begin{beamercolorbox}[wd=.425\paperwidth,ht=5mm,dp=1.5ex,left]{author in head/foot}%
+      %\raisebox{2mm}{}
+%    \end{beamercolorbox}%
+%    \begin{beamercolorbox}[wd=.06\paperwidth,ht=5mm,dp=1.5ex,right]{author in head/foot}%
+%    \end{beamercolorbox}}%
+  \vskip0pt%
+}
+
+\defbeamertemplate*{headline}{infolines theme}
+{%
+  \leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[wd=\beamer@leftmargin,ht=7mm,dp=1.5ex,right]{}%
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.485\linewidth,ht=7mm,dp=1.5ex,left]{section in head/foot}%
+       \rule{\linewidth}{0.4pt}
+      \usebeamerfont{title in head/foot}\insertshorttitle\hspace*{2ex}
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.03\textwidth,ht=7mm,dp=1.5ex,right]{}%
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.485\linewidth,ht=7mm,dp=1.5ex,left]{author in head/foot}%
+      \rule{\linewidth}{0.4pt}
+      \usebeamerfont{author in head/foot}\insertshortauthor\expandafter\ifblank\expandafter{\beamer@shortinstitute}{}{~~(\insertshortinstitute)}
+      ~~\insertshortdate{}
+%      \usebeamerfont{date in head/foot}
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=\beamer@rightmargin,ht=7mm,dp=1.5ex,center]{}%
+      \normalsize\usebeamercolor[fg]{page number in head/foot}\usebeamerfont{page number in head/foot}\insertpagenumber 
+    \end{beamercolorbox}}%
+  \vskip0pt%
+}
+
+\setbeamersize{text margin left=1em,text margin right=1em}
+\setbeamertemplate{navigation symbols}{}%remove navigation symbols
+
+\mode
+<all>

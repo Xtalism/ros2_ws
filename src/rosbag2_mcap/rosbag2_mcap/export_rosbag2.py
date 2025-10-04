@@ -10,32 +10,33 @@ class export_rosbag2:
             "input", help="input bag path (folder or filepath) to read from"
         )
         parser.add_argument(
-            "--topic", 
+            "--topic", "-t",
             help="topic name to read from"
         )
         parser.add_argument(
-            "--field",
+            "--field", "-f",
             help="message field to plot (supports dot notation for nested fields, e.g., 'linear.x')"
         )
         parser.add_argument(
-            "--output",
+            "--output", "-o",
             help="save plot name file (optional)"
         )
         parser.add_argument(
-            "--filetype",
+            "--filetype", "-ft",
             help="plot filetype (optional)"
         )
         parser.add_argument(
-            "--stats",
+            "--stats", "-s",
+            action="store_true",
             help="include statistics (average, min, max) in output (optional)",
         )
         parser.add_argument(
-            "--graph",
+            "--graph", "-g",
             action="store_true",
             help="generate a graph (optional)",
         )
         parser.add_argument(
-            "--csv",
+            "--csv", "-c",
             action="store_true",
             help="export data to CSV (optional)",
         )
@@ -121,7 +122,7 @@ class export_rosbag2:
 
         if args.stats:
             plt.text(0.02, 0.98, 
-                    f'Avg: {avg_value:.2f}\nMin: {min_value:.2f}\nMax: {max_value:.2f}', 
+                    f'Avg: {avg_value:.2f}\nMin: {min_value:.2f}\nMax: {max_value:.2f}\nTime: {(relative_times[-1]/60):.2f} min', 
                     transform=plt.gca().transAxes, 
                     verticalalignment='top',
                     bbox=dict(boxstyle='square', facecolor='white', alpha=0.8))

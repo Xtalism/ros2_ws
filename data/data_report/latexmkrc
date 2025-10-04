@@ -1,0 +1,1 @@
+$ENV{'TEXINPUTS'}='./EuXFEL_beamer_theme//:' . $ENV{'TEXINPUTS'}; 

@@ -1,0 +1,48 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{EuXFEL}[]  
+
+%%%%%
+% Create toggles for options
+%
+%\providetoggle{light}
+
+%%%%%
+% List options
+%
+%\DeclareOption{light}{\toggletrue{light}}
+%\DeclareOption{dark}{\togglefalse{light}}
+%\ExecuteOptions{dark}
+%\ProcessOptions\relax
+
+%%%%%
+% Define colours
+%
+\definecolor{dBlue}{RGB}{0,166,235}
+\definecolor{xDarkBlue}{RGB}{11,21,70}
+\definecolor{xOrange}{RGB}{243,146,0}
+\definecolor{xDarkBox}{RGB}{129,176,200}
+\definecolor{xDarkItem}{RGB}{85,157,187}
+\definecolor{xLightBox}{RGB}{227,235,242}
+
+
+\setbeamercolor*{normal text}{fg=black,bg=white}
+\setbeamercolor*{structure}{fg=black}
+\setbeamercolor*{item}{fg=xOrange}
+\setbeamercolor*{subitem}{fg=xDarkItem}
+\setbeamercolor*{subsubitem}{fg=black}
+\setbeamercolor{titlelike}{bg=white,fg=black}
+\setbeamercolor*{separation line head}{bg=white,fg=black}
+
+\setbeamercolor*{separation line}{use=structure,bg=structure.fg}
+\setbeamercolor{block title}{bg=xDarkBox,fg=white}
+\setbeamercolor{block body}{parent=normal text, use=block title, bg=xLightBox}
+\setbeamercolor{footline}{fg=black,bg=white}
+\setbeamercolor*{author in head/foot}{fg=black,bg=white}
+\setbeamercolor*{section in head/foot}{fg=black,bg=white}
+
+
+
+
+
+
+
