@@ -17,11 +17,11 @@ msg/*Result.msg
 msg/_*.py
 build_isolated/
 devel_isolated/
+data_report/
 rosbag_data/
 .vscode/
 *.csv
 *.pdf
-data/data_report/
 CameraTrajectory.txt
 KeyFrameTrajectory.txt
 
