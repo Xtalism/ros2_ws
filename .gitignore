@@ -21,6 +21,7 @@ rosbag_data/
 .vscode/
 *.csv
 *.pdf
+data/data_report
 CameraTrajectory.txt
 KeyFrameTrajectory.txt
 
