@@ -213,11 +213,12 @@ int main(int argc, char *argv[]) {
         });
     sm->add_state("KEYBOARD_INTERRUPT",
         std::make_shared<yasmin::CbState>(
-            std::initializer_list<std::string>{yasmin_ros::basic_outcomes::SUCCEED},
+            std::initializer_list<std::string>{yasmin_ros::basic_outcomes::ABORT},
             std::bind(&YasminDroneStateHelper::aborted_cb, helper, std::placeholders::_1)
         ),
         {
-            {yasmin_ros::basic_outcomes::SUCCEED, "LANDING"}
+            {yasmin_ros::basic_outcomes::ABORT, yasmin_ros::basic_outcomes::ABORT},
+            // {yasmin_ros::basic_outcomes::ABORT, "LANDING"}
         });
 
     yasmin_viewer::YasminViewerPub yasmin_pub("YASMIN_DJI_TELLO", sm);

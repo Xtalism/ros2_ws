@@ -36,11 +36,10 @@ set(PYTHON_SCRIPTS
   edge_detection
   line_detection
   sobel_derivative
-  video_capture
 )
 
 foreach(script ${PYTHON_SCRIPTS})
-  install(PROGRAMS cv_ros_bridge/${script}.py
+  install(PROGRAMS ${PROJECT_NAME}/${script}.py
     DESTINATION lib/${PROJECT_NAME}
     RENAME ${script}
   )
