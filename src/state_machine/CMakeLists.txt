@@ -63,4 +63,8 @@ foreach(PROGRAM_NAME ${CPP_PROGRAMS})
   install(TARGETS ${PROGRAM_NAME} DESTINATION lib/${PROJECT_NAME})
 endforeach()
 
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
+
 ament_package()
