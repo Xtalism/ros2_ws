@@ -53,7 +53,7 @@ private:
 };
 
 int main(int argc, char *argv[]) {
-    YASMIN_LOG_INFO("yasmin_dji_tello");
+    YASMIN_LOG_INFO("SIMPLE_STATE");
     rclcpp::init(argc, argv);
 
     // yasmin_ros::set_loggers();
@@ -94,14 +94,16 @@ int main(int argc, char *argv[]) {
             {yasmin_ros::basic_outcomes::SUCCEED, yasmin_ros::basic_outcomes::SUCCEED},
         });
 
-    yasmin_viewer::YasminViewerPub yasmin_pub("YASMIN_DJI_TELLO", sm);
+    yasmin_viewer::YasminViewerPub yasmin_pub("SIMPLE_STATE", sm);
 
     std::shared_ptr<yasmin::blackboard::Blackboard> blackboard =
         std::make_shared<yasmin::blackboard::Blackboard>();
 
     try {
-        std::string outcome = (*sm.get())(blackboard);
-        YASMIN_LOG_INFO(outcome.c_str());
+        while (rclcpp::ok()) {
+            std::string outcome = (*sm.get())(blackboard);
+            YASMIN_LOG_INFO(outcome.c_str());
+        }
     } catch (const std::exception &e) {
         YASMIN_LOG_WARN(e.what());
     }

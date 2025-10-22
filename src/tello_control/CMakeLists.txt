@@ -22,16 +22,24 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
-add_executable(tello_control src/main.cpp)
-
-ament_target_dependencies(
+set(CPP_PROGRAMS
   tello_control
+  auto_twist
+  circular_motion
+)
+
+set(DEPENDENCIES
   rclcpp
   std_msgs
   geometry_msgs
   OpenCV
 )
 
-install(TARGETS tello_control DESTINATION lib/${PROJECT_NAME})
+foreach(PROGRAM_NAME ${CPP_PROGRAMS})
+  add_executable(${PROGRAM_NAME} src/${PROGRAM_NAME}.cpp)
+  ament_target_dependencies(${PROGRAM_NAME} ${DEPENDENCIES})
+  target_include_directories(${PROGRAM_NAME} PRIVATE ${OpenCV_INCLUDE_DIRS})
+  install(TARGETS ${PROGRAM_NAME} DESTINATION lib/${PROJECT_NAME})
+endforeach()
 
 ament_package()

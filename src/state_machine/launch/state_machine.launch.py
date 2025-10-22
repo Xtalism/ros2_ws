@@ -33,4 +33,12 @@ def generate_launch_description() -> LaunchDescription:
     )
     ld.add_action(yasmin_dji_tello)
 
+    # simple_state: Node = Node(
+    #     package=package_name,
+    #     executable="simple_state",
+    #     name=LaunchConfiguration("state_machine"),
+    #     output="screen",
+    # )
+    # ld.add_action(simple_state)
+
     return ld

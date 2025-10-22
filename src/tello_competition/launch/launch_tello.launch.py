@@ -64,19 +64,27 @@ def generate_launch_description() -> LaunchDescription:
         remappings=[("/image_raw", "/camera"), ("/imu", "/imu/data_raw")],
         respawn=True,
     )
-
     ld.add_action(tello_driver_node)
 
-    tello_control_node: Node = Node(
-        package="tello_control",
-        executable="tello_control",
+    # tello_control_node: Node = Node(
+    #     package="tello_control",
+    #     executable="tello_control",
+    #     output="screen",
+    #     namespace="/",
+    #     name="control",
+    #     respawn=False,
+    # )
+    # ld.add_action(tello_control_node)
+
+    auto_twist: Node = Node(
+        package="auto_twist",
+        executable="auto_twist",
         output="screen",
         namespace="/",
         name="control",
         respawn=False,
     )
-
-    ld.add_action(tello_control_node)
+    ld.add_action(auto_twist)
 
     tello_tf_node: Node = Node(
         package="tf2_ros",
@@ -105,7 +113,6 @@ def generate_launch_description() -> LaunchDescription:
         ],
         respawn=True,
     )
-
     ld.add_action(tello_tf_node)
 
     rviz_node: Node = Node(
@@ -117,7 +124,6 @@ def generate_launch_description() -> LaunchDescription:
         arguments=["-d", "/home/xtal/ros2_ws/src/tello_competition/rviz/tello.rviz"],
         respawn=True,
     )
-
     ld.add_action(rviz_node)
 
     imu_filter_node: Node = Node(
@@ -129,7 +135,6 @@ def generate_launch_description() -> LaunchDescription:
         parameters=[{"use_mag": False}, {"use_gyro": True}, {"use_accel": True}],
         respawn=True,
     )
-
     ld.add_action(imu_filter_node)
 
     # ld.add_action(ExecuteProcess(cmd=["ros2", "bag", "record", "-a"], output="screen"))

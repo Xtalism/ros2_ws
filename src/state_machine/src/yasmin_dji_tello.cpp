@@ -217,7 +217,7 @@ int main(int argc, char *argv[]) {
             std::bind(&YasminDroneStateHelper::aborted_cb, helper, std::placeholders::_1)
         ),
         {
-            {yasmin_ros::basic_outcomes::ABORT, "LANDING"},
+          {yasmin_ros::basic_outcomes::ABORT, "LANDING"},
         });
 
     yasmin_viewer::YasminViewerPub yasmin_pub("YASMIN_DJI_TELLO", sm);
@@ -226,8 +226,10 @@ int main(int argc, char *argv[]) {
         std::make_shared<yasmin::blackboard::Blackboard>();
 
     try {
-        std::string outcome = (*sm.get())(blackboard);
-        YASMIN_LOG_INFO(outcome.c_str());
+        while (rclcpp::ok()) {
+            std::string outcome = (*sm.get())(blackboard);
+            YASMIN_LOG_INFO(outcome.c_str());
+        }
     } catch (const std::exception &e) {
         YASMIN_LOG_WARN(e.what());
     }
