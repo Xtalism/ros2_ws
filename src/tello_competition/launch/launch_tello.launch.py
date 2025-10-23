@@ -4,11 +4,10 @@ import subprocess
 
 from launch import LaunchDescription
 from launch.actions import LogInfo, OpaqueFunction, Shutdown
-
-# from launch.actions import ExecuteProcess
 from launch_ros.actions import Node
 
 SSID_OBJETIVO = "TELLO-9A0D42"
+# SSID_OBJETIVO = "TELLO-A04B3A"
 # SSID_OBJETIVO = "ConectaUACJ"
 # SSID_OBJETIVO = "MotherBase"
 
@@ -76,15 +75,43 @@ def generate_launch_description() -> LaunchDescription:
     # )
     # ld.add_action(tello_control_node)
 
-    auto_twist: Node = Node(
-        package="auto_twist",
-        executable="auto_twist",
+    # auto_twist: Node = Node(
+    #     package="tello_control",
+    #     executable="auto_twist",
+    #     output="screen",
+    #     namespace="/",
+    #     name="control",
+    #     respawn=False,
+    # )
+    # ld.add_action(auto_twist)
+
+    # circular_motion: Node = Node(
+    #     package="tello_control",
+    #     executable="circular_motion",
+    #     output="screen",
+    #     namespace="/",
+    #     name="control",
+    #     respawn=False,
+    # )
+    # ld.add_action(circular_motion)
+
+    simple_state: Node = Node(
+        package="state_machine",
+        executable="simple_state",
         output="screen",
         namespace="/",
         name="control",
         respawn=False,
     )
-    ld.add_action(auto_twist)
+    ld.add_action(simple_state)
+
+    yasmin_viewer_node: Node = Node(
+        package="state_machine",
+        executable="yasmin_viewer_node",
+        # output="screen",
+        # respawn=False,
+    )
+    ld.add_action(yasmin_viewer_node)
 
     tello_tf_node: Node = Node(
         package="tf2_ros",
