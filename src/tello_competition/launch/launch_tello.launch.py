@@ -105,13 +105,13 @@ def generate_launch_description() -> LaunchDescription:
     )
     ld.add_action(simple_state)
 
-    yasmin_viewer_node: Node = Node(
-        package="state_machine",
-        executable="yasmin_viewer_node",
-        # output="screen",
-        # respawn=False,
-    )
-    ld.add_action(yasmin_viewer_node)
+    # yasmin_viewer_node: Node = Node(
+    #     package="state_machine",
+    #     executable="yasmin_viewer_node",
+    #     # output="screen",
+    #     # respawn=False,
+    # )
+    # ld.add_action(yasmin_viewer_node)
 
     tello_tf_node: Node = Node(
         package="tf2_ros",

@@ -79,7 +79,7 @@ public:
         return yasmin_ros::basic_outcomes::SUCCEED;
     }
 
-    std::string twist_left_cb(std::shared_ptr<yasmin::blackboard::Blackboard>) {
+    std::string yaw_left_cb(std::shared_ptr<yasmin::blackboard::Blackboard>) {
         YASMIN_LOG_INFO("CB: yaw left...");
         bool ok = wait_for_subscribers<geometry_msgs::msg::Twist>(pub_control_, 1, std::chrono::milliseconds(3000));
         if (!ok) {
@@ -97,7 +97,7 @@ public:
         return yasmin_ros::basic_outcomes::SUCCEED;
     }
 
-    std::string twist_right_cb(std::shared_ptr<yasmin::blackboard::Blackboard>) {
+    std::string yaw_right_cb(std::shared_ptr<yasmin::blackboard::Blackboard>) {
         YASMIN_LOG_INFO("CB: yaw right...");
         bool ok = wait_for_subscribers<geometry_msgs::msg::Twist>(pub_control_, 1, std::chrono::milliseconds(3000));
         if (!ok) {
@@ -110,6 +110,78 @@ public:
         pub_control_->publish(msg);
 
         if (!interruptible_sleep(std::chrono::seconds(10))) {
+            return yasmin_ros::basic_outcomes::ABORT;
+        }
+        return yasmin_ros::basic_outcomes::SUCCEED;
+    }
+
+    std::string roll_left_cb(std::shared_ptr<yasmin::blackboard::Blackboard>) {
+        YASMIN_LOG_INFO("CB: roll left...");
+        bool ok = wait_for_subscribers<geometry_msgs::msg::Twist>(pub_control_, 1, std::chrono::milliseconds(3000));
+        if (!ok) {
+            YASMIN_LOG_WARN("No subscriber on /control within 3s; publishing anyway");
+        } else {
+            YASMIN_LOG_INFO("Matched %zu subscriber(s) on /control", pub_control_->get_subscription_count());
+        }
+        geometry_msgs::msg::Twist msg;
+        msg.linear.x = 5.0;
+        pub_control_->publish(msg);
+
+        if (!interruptible_sleep(std::chrono::seconds(3))) {
+            return yasmin_ros::basic_outcomes::ABORT;
+        }
+        return yasmin_ros::basic_outcomes::SUCCEED;
+    }
+
+    std::string roll_right_cb(std::shared_ptr<yasmin::blackboard::Blackboard>) {
+        YASMIN_LOG_INFO("CB: roll left...");
+        bool ok = wait_for_subscribers<geometry_msgs::msg::Twist>(pub_control_, 1, std::chrono::milliseconds(3000));
+        if (!ok) {
+            YASMIN_LOG_WARN("No subscriber on /control within 3s; publishing anyway");
+        } else {
+            YASMIN_LOG_INFO("Matched %zu subscriber(s) on /control", pub_control_->get_subscription_count());
+        }
+        geometry_msgs::msg::Twist msg;
+        msg.linear.x = -5.0;
+        pub_control_->publish(msg);
+
+        if (!interruptible_sleep(std::chrono::seconds(4))) {
+            return yasmin_ros::basic_outcomes::ABORT;
+        }
+        return yasmin_ros::basic_outcomes::SUCCEED;
+    }
+
+    std::string pitch_forward_cb(std::shared_ptr<yasmin::blackboard::Blackboard>) {
+        YASMIN_LOG_INFO("CB: pitch forward...");
+        bool ok = wait_for_subscribers<geometry_msgs::msg::Twist>(pub_control_, 1, std::chrono::milliseconds(3000));
+        if (!ok) {
+            YASMIN_LOG_WARN("No subscriber on /control within 3s; publishing anyway");
+        } else {
+            YASMIN_LOG_INFO("Matched %zu subscriber(s) on /control", pub_control_->get_subscription_count());
+        }
+        geometry_msgs::msg::Twist msg;
+        msg.linear.y = 5;
+        pub_control_->publish(msg);
+
+        if (!interruptible_sleep(std::chrono::seconds(4))) {
+            return yasmin_ros::basic_outcomes::ABORT;
+        }
+        return yasmin_ros::basic_outcomes::SUCCEED;
+    }
+
+    std::string pitch_backward_cb(std::shared_ptr<yasmin::blackboard::Blackboard>) {
+        YASMIN_LOG_INFO("CB: pitch backward...");
+        bool ok = wait_for_subscribers<geometry_msgs::msg::Twist>(pub_control_, 1, std::chrono::milliseconds(3000));
+        if (!ok) {
+            YASMIN_LOG_WARN("No subscriber on /control within 3s; publishing anyway");
+        } else {
+            YASMIN_LOG_INFO("Matched %zu subscriber(s) on /control", pub_control_->get_subscription_count());
+        }
+        geometry_msgs::msg::Twist msg;
+        msg.linear.y = -5;
+        pub_control_->publish(msg);
+
+        if (!interruptible_sleep(std::chrono::seconds(4))) {
             return yasmin_ros::basic_outcomes::ABORT;
         }
         return yasmin_ros::basic_outcomes::SUCCEED;
@@ -128,7 +200,7 @@ public:
         pub_land_->publish(msg);
 
         YASMIN_LOG_INFO("Landing in progress - waiting for completion...");
-        std::this_thread::sleep_for(std::chrono::seconds(10));
+        std::this_thread::sleep_for(std::chrono::seconds(4));
         YASMIN_LOG_INFO("Landing complete");
         return yasmin_ros::basic_outcomes::SUCCEED;
     }
@@ -185,31 +257,87 @@ int main(int argc, char *argv[]) {
             std::bind(&YasminDroneStateHelper::takeoff_cb, helper, std::placeholders::_1)
         ),
         {
-            {yasmin_ros::basic_outcomes::SUCCEED, "TWIST_LEFT"},
+            {yasmin_ros::basic_outcomes::SUCCEED, "YAW_LEFT"},
             {yasmin_ros::basic_outcomes::ABORT, "KEYBOARD_INTERRUPT"},
         });
 
-    sm->add_state("TWIST_LEFT",
+    sm->add_state("YAW_LEFT",
         std::make_shared<yasmin::CbState>(
             std::initializer_list<std::string>{
                 yasmin_ros::basic_outcomes::SUCCEED,
                 yasmin_ros::basic_outcomes::ABORT,
             },
-            std::bind(&YasminDroneStateHelper::twist_left_cb, helper, std::placeholders::_1)
+            std::bind(&YasminDroneStateHelper::yaw_left_cb, helper, std::placeholders::_1)
         ),
         {
-            {yasmin_ros::basic_outcomes::SUCCEED, "TWIST_RIGHT"},
+            {yasmin_ros::basic_outcomes::SUCCEED, "YAW_RIGHT"},
             {yasmin_ros::basic_outcomes::ABORT, "KEYBOARD_INTERRUPT"},
         }
     );
 
-    sm->add_state("TWIST_RIGHT",
+    sm->add_state("YAW_RIGHT",
         std::make_shared<yasmin::CbState>(
             std::initializer_list<std::string>{
                 yasmin_ros::basic_outcomes::SUCCEED,
                 yasmin_ros::basic_outcomes::ABORT,
             },
-            std::bind(&YasminDroneStateHelper::twist_right_cb, helper, std::placeholders::_1)
+            std::bind(&YasminDroneStateHelper::yaw_right_cb, helper, std::placeholders::_1)
+        ),
+        {
+            {yasmin_ros::basic_outcomes::SUCCEED, "ROLL_LEFT"},
+            {yasmin_ros::basic_outcomes::ABORT, "KEYBOARD_INTERRUPT"},
+        }
+    );
+
+    sm->add_state("ROLL_LEFT",
+        std::make_shared<yasmin::CbState>(
+            std::initializer_list<std::string>{
+                yasmin_ros::basic_outcomes::SUCCEED,
+                yasmin_ros::basic_outcomes::ABORT,
+            },
+            std::bind(&YasminDroneStateHelper::roll_left_cb, helper, std::placeholders::_1)
+        ),
+        {
+            {yasmin_ros::basic_outcomes::SUCCEED, "ROLL_RIGHT"},
+            {yasmin_ros::basic_outcomes::ABORT, "KEYBOARD_INTERRUPT"},
+        }
+    );
+
+   sm->add_state("ROLL_RIGHT",
+        std::make_shared<yasmin::CbState>(
+            std::initializer_list<std::string>{
+                yasmin_ros::basic_outcomes::SUCCEED,
+                yasmin_ros::basic_outcomes::ABORT,
+            },
+            std::bind(&YasminDroneStateHelper::roll_right_cb, helper, std::placeholders::_1)
+        ),
+        {
+            {yasmin_ros::basic_outcomes::SUCCEED, "PITCH_FORWARD"},
+            {yasmin_ros::basic_outcomes::ABORT, "KEYBOARD_INTERRUPT"},
+        }
+    );
+
+    sm->add_state("PITCH_FORWARD",
+        std::make_shared<yasmin::CbState>(
+            std::initializer_list<std::string>{
+                yasmin_ros::basic_outcomes::SUCCEED,
+                yasmin_ros::basic_outcomes::ABORT,
+            },
+            std::bind(&YasminDroneStateHelper::pitch_forward_cb, helper, std::placeholders::_1)
+        ),
+        {
+            {yasmin_ros::basic_outcomes::SUCCEED, "PITCH_BACKWARD"},
+            {yasmin_ros::basic_outcomes::ABORT, "KEYBOARD_INTERRUPT"},
+        }
+    );
+
+    sm->add_state("PITCH_BACKWARD",
+        std::make_shared<yasmin::CbState>(
+            std::initializer_list<std::string>{
+                yasmin_ros::basic_outcomes::SUCCEED,
+                yasmin_ros::basic_outcomes::ABORT,
+            },
+            std::bind(&YasminDroneStateHelper::pitch_backward_cb, helper, std::placeholders::_1)
         ),
         {
             {yasmin_ros::basic_outcomes::SUCCEED, "LANDING"},
