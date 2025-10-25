@@ -30,9 +30,9 @@ class TelloControl : public rclcpp::Node
          */
         int num_points = 20;
         int current_point = 0;
-        double radius = 30.0 / (2.0 * PI);  // 30 cm perimeter → radius ≈ 4.77 cm
+        double radius = 30.0 / (2.0 * PI);
 
-        double x_center = 0.0;  // Relative to takeoff position
+        double x_center = 0.0; 
         double y_center = 0.0;
         double z_center = 0.0;
 
@@ -63,7 +63,6 @@ class TelloControl : public rclcpp::Node
             publisher_velocity = this->create_publisher<geometry_msgs::msg::Twist>("control", 1);
             publisher_emergency = this->create_publisher<std_msgs::msg::Empty>("emergency", 1);
 
-            // Main control loop timer - runs at 50Hz
             trajectory_timer = this->create_wall_timer(
                 20ms, std::bind(&TelloControl::autonomousCallback, this));
 
@@ -79,11 +78,10 @@ class TelloControl : public rclcpp::Node
             RCLCPP_INFO(this->get_logger(), "  - Points: %d", num_points);
             RCLCPP_INFO(this->get_logger(), "Starting autonomous sequence in 3 seconds...");
             
-            // Start the sequence after 3 seconds (one-shot timer)
             start_timer = this->create_wall_timer(
                 3s, [this]() { 
                     this->startSequence(); 
-                    this->start_timer->cancel();  // Cancel after first execution
+                    this->start_timer->cancel(); 
                 });
         }
 
@@ -118,11 +116,9 @@ class TelloControl : public rclcpp::Node
             switch(current_state)
             {
                 case IDLE:
-                    // Do nothing, waiting for start
                     break;
 
                 case TAKING_OFF:
-                    // Wait a bit for takeoff command to be sent
                     if (elapsed > 1.0) {
                         current_state = WAITING_TAKEOFF;
                         state_start_time = current_time;

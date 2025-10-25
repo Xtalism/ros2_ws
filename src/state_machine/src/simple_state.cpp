@@ -19,6 +19,7 @@
 #include "yasmin_viewer/yasmin_viewer_pub.hpp"
 
 static std::atomic<bool> g_interrupt_requested{false};
+
 class YasminDroneStateHelper {
 public:
     explicit YasminDroneStateHelper(std::shared_ptr<rclcpp::Node> node)
@@ -55,10 +56,24 @@ public:
         return true; 
     }
 
-    std::string keyboard_interrupt_cb(std::shared_ptr<yasmin::blackboard::Blackboard>) {
-        YASMIN_LOG_WARN("CB: keyboard interrupt - initiating emergency landing sequence...");
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        return yasmin_ros::basic_outcomes::ABORT;
+    std::string ping_cb(std::shared_ptr<yasmin::blackboard::Blackboard>) {
+        int attempts = 0;
+        const int max_attempts = 3;
+    
+        while (attempts < max_attempts) {
+            int handshake = system("ping -c6 -s1 192.168.100.204 > /dev/null 2>&1");
+            if (handshake == 0) {
+                YASMIN_LOG_INFO("Ping success");
+                return yasmin_ros::basic_outcomes::SUCCEED;
+            } else {
+                ++attempts;
+                if (attempts < max_attempts) {
+                    YASMIN_LOG_WARN("Ping failed, retrying... (attempt %d/%d)", attempts, max_attempts);
+                }
+            }
+        }
+        YASMIN_LOG_WARN("Ping failed after %d attempts, giving up.", max_attempts);
+        return yasmin_ros::basic_outcomes::TIMEOUT;
     }
 
     std::string takeoff_cb(std::shared_ptr<yasmin::blackboard::Blackboard>) {
@@ -74,7 +89,7 @@ public:
         pub_takeoff_->publish(msg);
 
         if (!interruptible_sleep(std::chrono::seconds(10))) {
-            return yasmin_ros::basic_outcomes::ABORT;
+            return "keyinterrupt";
         }
         return yasmin_ros::basic_outcomes::SUCCEED;
     }
@@ -92,7 +107,7 @@ public:
         pub_control_->publish(msg);
 
         if (!interruptible_sleep(std::chrono::seconds(10))) {
-            return yasmin_ros::basic_outcomes::ABORT;
+            return "keyinterrupt";
         }
         return yasmin_ros::basic_outcomes::SUCCEED;
     }
@@ -110,7 +125,7 @@ public:
         pub_control_->publish(msg);
 
         if (!interruptible_sleep(std::chrono::seconds(10))) {
-            return yasmin_ros::basic_outcomes::ABORT;
+            return "keyinterrupt";
         }
         return yasmin_ros::basic_outcomes::SUCCEED;
     }
@@ -128,7 +143,7 @@ public:
         pub_control_->publish(msg);
 
         if (!interruptible_sleep(std::chrono::seconds(3))) {
-            return yasmin_ros::basic_outcomes::ABORT;
+            return "keyinterrupt";
         }
         return yasmin_ros::basic_outcomes::SUCCEED;
     }
@@ -146,7 +161,7 @@ public:
         pub_control_->publish(msg);
 
         if (!interruptible_sleep(std::chrono::seconds(4))) {
-            return yasmin_ros::basic_outcomes::ABORT;
+            return "keyinterrupt";
         }
         return yasmin_ros::basic_outcomes::SUCCEED;
     }
@@ -164,7 +179,7 @@ public:
         pub_control_->publish(msg);
 
         if (!interruptible_sleep(std::chrono::seconds(4))) {
-            return yasmin_ros::basic_outcomes::ABORT;
+            return "keyinterrupt";
         }
         return yasmin_ros::basic_outcomes::SUCCEED;
     }
@@ -182,7 +197,7 @@ public:
         pub_control_->publish(msg);
 
         if (!interruptible_sleep(std::chrono::seconds(4))) {
-            return yasmin_ros::basic_outcomes::ABORT;
+            return "keyinterrupt";
         }
         return yasmin_ros::basic_outcomes::SUCCEED;
     }
@@ -213,6 +228,17 @@ private:
     rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr pub_land_;
 };
 
+class ExceptionCallback : public yasmin::State {
+    public:
+        ExceptionCallback(): yasmin::State({"KEYBOARD_INTERRUPT"}) {}
+
+    std::string execute(std::shared_ptr<yasmin::blackboard::Blackboard>) override {
+        YASMIN_LOG_WARN("CB: keyinterrupt - initiating emergency landing sequence...");
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        return "keyinterrupt";
+    }
+};
+
 void signal_handler(int signum) {
     if (signum == SIGINT) {
         YASMIN_LOG_WARN("SIGINT received - initiating safe shutdown...");
@@ -234,44 +260,50 @@ int main(int argc, char *argv[]) {
     auto sm = std::make_shared<yasmin::StateMachine>(
         std::set<std::string>{
             yasmin_ros::basic_outcomes::SUCCEED,
+            yasmin_ros::basic_outcomes::TIMEOUT,
             yasmin_ros::basic_outcomes::ABORT,
+            // "keyinterrupt",
         });
 
-    sm->add_state("KEYBOARD_INTERRUPT",
+    sm->add_state("PING",
         std::make_shared<yasmin::CbState>(
             std::initializer_list<std::string>{
-                yasmin_ros::basic_outcomes::ABORT,
+                yasmin_ros::basic_outcomes::SUCCEED,
+                yasmin_ros::basic_outcomes::TIMEOUT,
+                yasmin_ros::basic_outcomes::RETRY,
             },
-        std::bind(&YasminDroneStateHelper::keyboard_interrupt_cb, helper, std::placeholders::_1)
-    ),
-    {
-        {yasmin_ros::basic_outcomes::ABORT, "LANDING"},
+            std::bind(&YasminDroneStateHelper::ping_cb, helper, std::placeholders::_1)
+        ),
+        {
+            {yasmin_ros::basic_outcomes::SUCCEED, "TAKEOFF"},
+            {yasmin_ros::basic_outcomes::RETRY, "PING"},
+            {yasmin_ros::basic_outcomes::TIMEOUT, yasmin_ros::basic_outcomes::TIMEOUT},
     });
 
     sm->add_state("TAKEOFF",
         std::make_shared<yasmin::CbState>(
             std::initializer_list<std::string>{
                 yasmin_ros::basic_outcomes::SUCCEED,
-                yasmin_ros::basic_outcomes::ABORT,
+                "keyinterrupt",
             },
             std::bind(&YasminDroneStateHelper::takeoff_cb, helper, std::placeholders::_1)
         ),
         {
             {yasmin_ros::basic_outcomes::SUCCEED, "YAW_LEFT"},
-            {yasmin_ros::basic_outcomes::ABORT, "KEYBOARD_INTERRUPT"},
+            {"keyinterrupt", "LANDING"},
         });
 
     sm->add_state("YAW_LEFT",
         std::make_shared<yasmin::CbState>(
             std::initializer_list<std::string>{
                 yasmin_ros::basic_outcomes::SUCCEED,
-                yasmin_ros::basic_outcomes::ABORT,
+                "keyinterrupt",
             },
             std::bind(&YasminDroneStateHelper::yaw_left_cb, helper, std::placeholders::_1)
         ),
         {
             {yasmin_ros::basic_outcomes::SUCCEED, "YAW_RIGHT"},
-            {yasmin_ros::basic_outcomes::ABORT, "KEYBOARD_INTERRUPT"},
+            {"keyinterrupt", "LANDING"},
         }
     );
 
@@ -279,13 +311,14 @@ int main(int argc, char *argv[]) {
         std::make_shared<yasmin::CbState>(
             std::initializer_list<std::string>{
                 yasmin_ros::basic_outcomes::SUCCEED,
-                yasmin_ros::basic_outcomes::ABORT,
+                "keyinterrupt"
             },
             std::bind(&YasminDroneStateHelper::yaw_right_cb, helper, std::placeholders::_1)
         ),
         {
             {yasmin_ros::basic_outcomes::SUCCEED, "ROLL_LEFT"},
-            {yasmin_ros::basic_outcomes::ABORT, "KEYBOARD_INTERRUPT"},
+            {"keyinterrupt", "LANDING"},
+
         }
     );
 
@@ -293,13 +326,13 @@ int main(int argc, char *argv[]) {
         std::make_shared<yasmin::CbState>(
             std::initializer_list<std::string>{
                 yasmin_ros::basic_outcomes::SUCCEED,
-                yasmin_ros::basic_outcomes::ABORT,
+                "keyinterrupt",
             },
             std::bind(&YasminDroneStateHelper::roll_left_cb, helper, std::placeholders::_1)
         ),
         {
             {yasmin_ros::basic_outcomes::SUCCEED, "ROLL_RIGHT"},
-            {yasmin_ros::basic_outcomes::ABORT, "KEYBOARD_INTERRUPT"},
+            {"keyinterrupt", "LANDING"},
         }
     );
 
@@ -307,13 +340,13 @@ int main(int argc, char *argv[]) {
         std::make_shared<yasmin::CbState>(
             std::initializer_list<std::string>{
                 yasmin_ros::basic_outcomes::SUCCEED,
-                yasmin_ros::basic_outcomes::ABORT,
+                "keyinterrupt",
             },
             std::bind(&YasminDroneStateHelper::roll_right_cb, helper, std::placeholders::_1)
         ),
         {
             {yasmin_ros::basic_outcomes::SUCCEED, "PITCH_FORWARD"},
-            {yasmin_ros::basic_outcomes::ABORT, "KEYBOARD_INTERRUPT"},
+            {"keyinterrupt", "LANDING"},
         }
     );
 
@@ -321,13 +354,13 @@ int main(int argc, char *argv[]) {
         std::make_shared<yasmin::CbState>(
             std::initializer_list<std::string>{
                 yasmin_ros::basic_outcomes::SUCCEED,
-                yasmin_ros::basic_outcomes::ABORT,
+                "keyinterrupt",
             },
             std::bind(&YasminDroneStateHelper::pitch_forward_cb, helper, std::placeholders::_1)
         ),
         {
             {yasmin_ros::basic_outcomes::SUCCEED, "PITCH_BACKWARD"},
-            {yasmin_ros::basic_outcomes::ABORT, "KEYBOARD_INTERRUPT"},
+            {"keyinterrupt", "LANDING"},
         }
     );
 
@@ -335,13 +368,13 @@ int main(int argc, char *argv[]) {
         std::make_shared<yasmin::CbState>(
             std::initializer_list<std::string>{
                 yasmin_ros::basic_outcomes::SUCCEED,
-                yasmin_ros::basic_outcomes::ABORT,
+                "keyinterrupt",
             },
             std::bind(&YasminDroneStateHelper::pitch_backward_cb, helper, std::placeholders::_1)
         ),
         {
             {yasmin_ros::basic_outcomes::SUCCEED, "LANDING"},
-            {yasmin_ros::basic_outcomes::ABORT, "KEYBOARD_INTERRUPT"},
+            {"keyinterrupt", "LANDING"},
         }
     );
 
@@ -349,27 +382,30 @@ int main(int argc, char *argv[]) {
         std::make_shared<yasmin::CbState>(
             std::initializer_list<std::string>{
                 yasmin_ros::basic_outcomes::SUCCEED,
-                yasmin_ros::basic_outcomes::ABORT,
+                "keyinterrupt",
             },
             std::bind(&YasminDroneStateHelper::land_cb, helper, std::placeholders::_1)
         ),
         {
             {yasmin_ros::basic_outcomes::SUCCEED, yasmin_ros::basic_outcomes::SUCCEED},
-            {yasmin_ros::basic_outcomes::ABORT, yasmin_ros::basic_outcomes::ABORT},
+            {"keyinterrupt", yasmin_ros::basic_outcomes::ABORT},
         });
 
-    sm->set_start_state("TAKEOFF");
+    sm->set_start_state("PING");
 
     yasmin_viewer::YasminViewerPub yasmin_pub("SIMPLE_STATE", sm);
     auto blackboard = std::make_shared<yasmin::blackboard::Blackboard>();
 
+    // while (rclcpp::ok()) {
     try {
         YASMIN_LOG_INFO("Starting state machine execution...");
         std::string outcome = (*sm.get())(blackboard);
         YASMIN_LOG_INFO("State machine finished with outcome: %s", outcome.c_str());
-        
-        if (outcome == yasmin_ros::basic_outcomes::ABORT) {
+
+        if (outcome == "keyinterrupt") {
             YASMIN_LOG_WARN("Mission aborted - emergency landing completed");
+        } else if (outcome == yasmin_ros::basic_outcomes::TIMEOUT) {
+            YASMIN_LOG_WARN("Mission timed out");
         } else {
             YASMIN_LOG_INFO("Mission completed successfully");
         }
@@ -382,6 +418,7 @@ int main(int argc, char *argv[]) {
         YASMIN_LOG_WARN("Attempting emergency landing...");
         helper->land_cb(blackboard);
     }
+    // }
 
     YASMIN_LOG_INFO("Shutting down gracefully...");
     helper.reset();
