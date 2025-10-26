@@ -95,15 +95,25 @@ def generate_launch_description() -> LaunchDescription:
     # )
     # ld.add_action(circular_motion)
 
-    simple_state: Node = Node(
+    # simple_state: Node = Node(
+    #     package="state_machine",
+    #     executable="simple_state",
+    #     output="screen",
+    #     namespace="/",
+    #     name="control",
+    #     respawn=False,
+    # )
+    # ld.add_action(simple_state)
+
+    yasmin_dji_tello: Node = Node(
         package="state_machine",
-        executable="simple_state",
+        executable="yasmin_dji_tello",
         output="screen",
         namespace="/",
         name="control",
         respawn=False,
     )
-    ld.add_action(simple_state)
+    ld.add_action(yasmin_dji_tello)
 
     # yasmin_viewer_node: Node = Node(
     #     package="state_machine",

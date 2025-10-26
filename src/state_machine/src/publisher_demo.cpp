@@ -135,8 +135,7 @@ int main(int argc, char *argv[]) {
   // Add states to the state machine
   sm->add_state("PUBLISHING_INT", std::make_shared<PublishIntState>(),
                 {
-                    {yasmin_ros::basic_outcomes::SUCCEED,
-                     "CHECKINNG_COUNTS"}, // Transition back to itself
+                    {yasmin_ros::basic_outcomes::SUCCEED, "CHECKINNG_COUNTS"}, // Transition back to itself
                 });
   sm->add_state("CHECKINNG_COUNTS",
                 std::make_shared<yasmin::CbState>(

@@ -3,240 +3,210 @@
 #include <string>
 #include <thread>
 #include <chrono>
+#include <csignal>
+#include <atomic>
 
 #include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/int32.hpp"
-#include "std_msgs/msg/string.hpp"
-#include "geometry_msgs/msg/twist.hpp"
 #include "std_msgs/msg/empty.hpp"
-
+#include "geometry_msgs/msg/twist.hpp"
 #include "yasmin/cb_state.hpp"
 #include "yasmin/logs.hpp"
 #include "yasmin/state_machine.hpp"
 #include "yasmin_ros/basic_outcomes.hpp"
+#include "yasmin_ros/ros_logs.hpp"
 #include "yasmin_viewer/yasmin_viewer_pub.hpp"
 
-using namespace yasmin;
+static std::atomic<bool> g_interrupt_requested{false};
 
-class YasminDroneStateHelper {
+static bool interruptible_sleep(std::chrono::seconds duration) {
+    auto end_time = std::chrono::steady_clock::now() + duration;
+    while (std::chrono::steady_clock::now() < end_time) {
+        if (g_interrupt_requested) {
+            YASMIN_LOG_WARN("Interrupt detected during sleep!");
+            return false;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    return true;
+}
+
+class YasminRos {
 public:
-    explicit YasminDroneStateHelper(std::shared_ptr<rclcpp::Node> node)
+    explicit YasminRos(std::shared_ptr<rclcpp::Node> node)
         : node_(node)
     {
-        pub_ping_    = node_->create_publisher<std_msgs::msg::Empty>("ping_success", 10);
         pub_takeoff_ = node_->create_publisher<std_msgs::msg::Empty>("takeoff", 10);
         pub_control_ = node_->create_publisher<geometry_msgs::msg::Twist>("control", 10);
         pub_land_    = node_->create_publisher<std_msgs::msg::Empty>("land", 10);
     }
 
-    std::string ping_cb(std::shared_ptr<yasmin::blackboard::Blackboard>) {
-        YASMIN_LOG_INFO("CB: pinging...");
-        std_msgs::msg::Empty msg;
-        pub_ping_->publish(msg);
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        // Custom abort logic here if needed
-        return yasmin_ros::basic_outcomes::SUCCEED;
+    template<typename MessageType>
+    static bool wait_for_subscribers(
+        const typename rclcpp::Publisher<MessageType>::SharedPtr& pub,
+        size_t min_subs,
+        std::chrono::milliseconds timeout)
+    {
+        auto start = std::chrono::steady_clock::now();
+        while (pub->get_subscription_count() < min_subs) {
+            if (std::chrono::steady_clock::now() - start > timeout) return false;
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+        return true;
     }
 
-    std::string takeoff_cb(std::shared_ptr<yasmin::blackboard::Blackboard>) {
-        YASMIN_LOG_INFO("CB: takeoff...");
-        std_msgs::msg::Empty msg;
-        pub_takeoff_->publish(msg);
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        return yasmin_ros::basic_outcomes::SUCCEED;
-    }
-
-    std::string yaw_left_cb(std::shared_ptr<yasmin::blackboard::Blackboard>) {
-        YASMIN_LOG_INFO("CB: yaw left...");
-        geometry_msgs::msg::Twist msg;
-        msg.angular.z = -50.0;
-        pub_control_->publish(msg);
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        return yasmin_ros::basic_outcomes::SUCCEED;
-    }
-
-    std::string yaw_right_cb(std::shared_ptr<yasmin::blackboard::Blackboard>) {
-        YASMIN_LOG_INFO("CB: yaw right...");
-        geometry_msgs::msg::Twist msg;
-        msg.angular.z = 50.0;
-        pub_control_->publish(msg);
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        return yasmin_ros::basic_outcomes::SUCCEED;
-    }
-
-    std::string land_cb(std::shared_ptr<yasmin::blackboard::Blackboard>) {
-        YASMIN_LOG_INFO("CB: land...");
-        std_msgs::msg::Empty msg;
-        pub_land_->publish(msg);
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        return yasmin_ros::basic_outcomes::SUCCEED;
-    }
-
-    std::string aborted_cb(std::shared_ptr<yasmin::blackboard::Blackboard>) {
-        YASMIN_LOG_WARN("FSM Aborted.");
-        return yasmin_ros::basic_outcomes::ABORT;
-    }
+    rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr get_takeoff_pub() const { return pub_takeoff_; }
+    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr get_control_pub() const { return pub_control_; }
+    rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr get_land_pub() const { return pub_land_; }
 
 private:
     std::shared_ptr<rclcpp::Node> node_;
-    rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr pub_ping_;
     rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr pub_takeoff_;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_control_;
     rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr pub_land_;
 };
 
+class PingState : public yasmin::State {
+public:
+    PingState(std::shared_ptr<YasminRos> ros)
+        : yasmin::State({yasmin_ros::basic_outcomes::SUCCEED, yasmin_ros::basic_outcomes::TIMEOUT}), ros_(ros) {}
+
+    std::string execute(std::shared_ptr<yasmin::blackboard::Blackboard>) override {
+        int attempts = 0;
+        const int max_attempts = 3;
+        while (attempts < max_attempts) {
+            int handshake = system("ping -c2 -s1 192.168.10.1 > /dev/null 2>&1");
+            if (handshake == 0) {
+                YASMIN_LOG_INFO("Ping success");
+                return yasmin_ros::basic_outcomes::SUCCEED;
+            } else {
+                ++attempts;
+                if (attempts < max_attempts) {
+                    YASMIN_LOG_WARN("Ping failed, retrying... (attempt %d/%d)", attempts, max_attempts);
+                }
+            }
+        }
+        YASMIN_LOG_WARN("Ping failed after %d attempts, giving up.", max_attempts);
+        return yasmin_ros::basic_outcomes::TIMEOUT;
+    }
+private:
+    std::shared_ptr<YasminRos> ros_;
+};
+
+class TakeoffState : public yasmin::State {
+public:
+    TakeoffState(std::shared_ptr<YasminRos> ros)
+        : yasmin::State({yasmin_ros::basic_outcomes::SUCCEED}), ros_(ros) {}
+
+    std::string execute(std::shared_ptr<yasmin::blackboard::Blackboard>) override {
+        YASMIN_LOG_INFO("CB: takeoff... waiting for subscriber");
+        bool ok = YasminRos::wait_for_subscribers<std_msgs::msg::Empty>(ros_->get_takeoff_pub(), 1, std::chrono::milliseconds(3000));
+        if (!ok) {
+            YASMIN_LOG_WARN("No subscriber on /takeoff within 3s; publishing anyway");
+        } else {
+            YASMIN_LOG_INFO("Matched %zu subscriber(s) on /takeoff", ros_->get_takeoff_pub()->get_subscription_count());
+        }
+        std_msgs::msg::Empty msg;
+        ros_->get_takeoff_pub()->publish(msg);
+
+        if (!interruptible_sleep(std::chrono::seconds(2))) {
+            return yasmin_ros::basic_outcomes::TIMEOUT;
+        }
+        return yasmin_ros::basic_outcomes::SUCCEED;
+    }
+private:
+    std::shared_ptr<YasminRos> ros_;
+};
+
+class LandState : public yasmin::State {
+public:
+    LandState(std::shared_ptr<YasminRos> ros)
+        : yasmin::State({yasmin_ros::basic_outcomes::SUCCEED}), ros_(ros) {}
+
+    std::string execute(std::shared_ptr<yasmin::blackboard::Blackboard>) override {
+        YASMIN_LOG_INFO("CB: land... waiting for subscriber");
+        bool ok = YasminRos::wait_for_subscribers<std_msgs::msg::Empty>(ros_->get_land_pub(), 1, std::chrono::milliseconds(3000));
+        if (!ok) {
+            YASMIN_LOG_WARN("No subscriber on /land within 3s; publishing anyway");
+        } else {
+            YASMIN_LOG_INFO("Matched %zu subscriber(s) on /land", ros_->get_land_pub()->get_subscription_count());
+        }
+        std_msgs::msg::Empty msg;
+        ros_->get_land_pub()->publish(msg);
+
+        YASMIN_LOG_INFO("Landing in progress - waiting for completion...");
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        YASMIN_LOG_INFO("Landing complete");
+        return yasmin_ros::basic_outcomes::SUCCEED;
+    }
+private:
+    std::shared_ptr<YasminRos> ros_;
+};
+
+void signal_handler(int signum) {
+    if (signum == SIGINT) {
+        YASMIN_LOG_WARN("SIGINT received - initiating safe shutdown...");
+        g_interrupt_requested = true;
+    }
+}
+
 int main(int argc, char *argv[]) {
-    YASMIN_LOG_INFO("yasmin_dji_tello");
+    YASMIN_LOG_INFO("SIMPLE_STATE");
     rclcpp::init(argc, argv);
 
-    // yasmin_ros::set_loggers();
+    std::signal(SIGINT, signal_handler);
+
+    yasmin_ros::set_ros_loggers();
 
     auto node = std::make_shared<rclcpp::Node>("yasmin_cbstate_helper");
-    auto helper = std::make_shared<YasminDroneStateHelper>(node);
+    auto yasmin_ros = std::make_shared<YasminRos>(node);
 
     auto sm = std::make_shared<yasmin::StateMachine>(
         std::set<std::string>{
             yasmin_ros::basic_outcomes::SUCCEED,
-            yasmin_ros::basic_outcomes::FAIL,
-            yasmin_ros::basic_outcomes::ABORT,
+            yasmin_ros::basic_outcomes::TIMEOUT,
+            // yasmin_ros::basic_outcomes::ABORT,
         });
 
-    rclcpp::on_shutdown([sm]() {
-        if (sm->is_running()) {
-            sm->cancel_state();
-        }
-    });
-
-    sm->add_state("PING_CONNECTION",
-        std::make_shared<yasmin::CbState>(
-            std::initializer_list<std::string>{
-                yasmin_ros::basic_outcomes::SUCCEED,
-                yasmin_ros::basic_outcomes::FAIL,
-                yasmin_ros::basic_outcomes::ABORT,
-            },
-            std::bind(&YasminDroneStateHelper::ping_cb, helper, std::placeholders::_1)
-        ),
-        {
-            {yasmin_ros::basic_outcomes::SUCCEED, "VERIFY_SENSORS"},
-            {yasmin_ros::basic_outcomes::FAIL, "TIMEOUT"},
-            {yasmin_ros::basic_outcomes::ABORT, "KEYBOARD_INTERRUPT"},
-        });
-    sm->add_state("VERIFY_SENSORS",
-        std::make_shared<yasmin::CbState>(
-            std::initializer_list<std::string>{
-                yasmin_ros::basic_outcomes::SUCCEED,
-                yasmin_ros::basic_outcomes::FAIL,
-                yasmin_ros::basic_outcomes::ABORT,
-            },
-            std::bind(&YasminDroneStateHelper::ping_cb, helper, std::placeholders::_1)
-        ),
+    sm->add_state("PING", std::make_shared<PingState>(yasmin_ros),
         {
             {yasmin_ros::basic_outcomes::SUCCEED, "TAKEOFF"},
-            {yasmin_ros::basic_outcomes::FAIL, "NO_TOPICS_DATA"},
-            {yasmin_ros::basic_outcomes::ABORT, "KEYBOARD_INTERRUPT"},
+            {yasmin_ros::basic_outcomes::TIMEOUT, yasmin_ros::basic_outcomes::TIMEOUT}
         });
 
-    sm->add_state("TAKEOFF",
-        std::make_shared<yasmin::CbState>(
-            std::initializer_list<std::string>{
-                yasmin_ros::basic_outcomes::SUCCEED,
-                yasmin_ros::basic_outcomes::ABORT,
-                yasmin_ros::basic_outcomes::FAIL,
-            },
-            std::bind(&YasminDroneStateHelper::takeoff_cb, helper, std::placeholders::_1)
-        ),
+    sm->add_state("TAKEOFF", std::make_shared<TakeoffState>(yasmin_ros),
         {
-            {yasmin_ros::basic_outcomes::SUCCEED, "YAW_LEFT"},
-            {yasmin_ros::basic_outcomes::ABORT, "KEYBOARD_INTERRUPT"},
-            {yasmin_ros::basic_outcomes::FAIL, "NO_TOPICS_DATA"},
+            {yasmin_ros::basic_outcomes::SUCCEED, "LAND"}
         });
 
-    sm->add_state("YAW_LEFT",
-        std::make_shared<yasmin::CbState>(
-            std::initializer_list<std::string>{
-                yasmin_ros::basic_outcomes::SUCCEED,
-                yasmin_ros::basic_outcomes::ABORT,
-                yasmin_ros::basic_outcomes::FAIL,
-            },
-            std::bind(&YasminDroneStateHelper::yaw_left_cb, helper, std::placeholders::_1)
-        ),
+    sm->add_state("LAND", std::make_shared<LandState>(yasmin_ros),
         {
-            {yasmin_ros::basic_outcomes::SUCCEED, "YAW_RIGHT"},
-            {yasmin_ros::basic_outcomes::ABORT, "KEYBOARD_INTERRUPT"},
-            {yasmin_ros::basic_outcomes::FAIL, "NO_TOPICS_DATA"},
+            {yasmin_ros::basic_outcomes::SUCCEED, yasmin_ros::basic_outcomes::SUCCEED}
         });
 
-    sm->add_state("YAW_RIGHT",
-        std::make_shared<yasmin::CbState>(
-            std::initializer_list<std::string>{
-                yasmin_ros::basic_outcomes::SUCCEED,
-                yasmin_ros::basic_outcomes::ABORT,
-                yasmin_ros::basic_outcomes::FAIL,
-            },
-            std::bind(&YasminDroneStateHelper::yaw_right_cb, helper, std::placeholders::_1)
-        ),
-        {
-            {yasmin_ros::basic_outcomes::SUCCEED, "LANDING"},
-            {yasmin_ros::basic_outcomes::ABORT, "KEYBOARD_INTERRUPT"},
-            {yasmin_ros::basic_outcomes::FAIL, "NO_TOPICS_DATA"},
-        });
+    sm->set_start_state("PING");
 
-    sm->add_state("LANDING",
-        std::make_shared<yasmin::CbState>(
-            std::initializer_list<std::string>{
-                yasmin_ros::basic_outcomes::SUCCEED,
-                yasmin_ros::basic_outcomes::ABORT,
-                yasmin_ros::basic_outcomes::FAIL,
-            },
-            std::bind(&YasminDroneStateHelper::land_cb, helper, std::placeholders::_1)
-        ),
-        {
-            {yasmin_ros::basic_outcomes::SUCCEED, yasmin_ros::basic_outcomes::SUCCEED},
-            {yasmin_ros::basic_outcomes::ABORT, yasmin_ros::basic_outcomes::ABORT},
-        });
+    yasmin_viewer::YasminViewerPub yasmin_pub("SIMPLE_STATE", sm);
+    auto blackboard = std::make_shared<yasmin::blackboard::Blackboard>();
 
-    sm->add_state("TIMEOUT",
-        std::make_shared<yasmin::CbState>(
-            std::initializer_list<std::string>{yasmin_ros::basic_outcomes::FAIL},
-            std::bind(&YasminDroneStateHelper::aborted_cb, helper, std::placeholders::_1)
-        ),
-        {
-            {yasmin_ros::basic_outcomes::FAIL, "LANDING"}
-        });
-    sm->add_state("NO_TOPICS_DATA",
-        std::make_shared<yasmin::CbState>(
-            std::initializer_list<std::string>{yasmin_ros::basic_outcomes::FAIL},
-            std::bind(&YasminDroneStateHelper::aborted_cb, helper, std::placeholders::_1)
-        ),
-        {
-            {yasmin_ros::basic_outcomes::FAIL, "LANDING"}
-        });
-    sm->add_state("KEYBOARD_INTERRUPT",
-        std::make_shared<yasmin::CbState>(
-            std::initializer_list<std::string>{yasmin_ros::basic_outcomes::ABORT},
-            std::bind(&YasminDroneStateHelper::aborted_cb, helper, std::placeholders::_1)
-        ),
-        {
-          {yasmin_ros::basic_outcomes::ABORT, "LANDING"},
-        });
+    while (rclcpp::ok()) {
+        YASMIN_LOG_INFO("Starting state machine execution...");
+        std::string outcome = (*sm.get())(blackboard);
+        YASMIN_LOG_INFO("State machine finished with outcome: %s", outcome.c_str());
 
-    yasmin_viewer::YasminViewerPub yasmin_pub("YASMIN_DJI_TELLO", sm);
-
-    std::shared_ptr<yasmin::blackboard::Blackboard> blackboard =
-        std::make_shared<yasmin::blackboard::Blackboard>();
-
-    try {
-        while (rclcpp::ok()) {
-            std::string outcome = (*sm.get())(blackboard);
-            YASMIN_LOG_INFO(outcome.c_str());
+        if (outcome == yasmin_ros::basic_outcomes::TIMEOUT) {
+            YASMIN_LOG_WARN("Mission timed out");
+        } else if (outcome == yasmin_ros::basic_outcomes::SUCCEED) {
+            YASMIN_LOG_INFO("Mission completed successfully");
+        } else {
+            YASMIN_LOG_WARN("Unknown outcome: %s", outcome.c_str());
         }
-    } catch (const std::exception &e) {
-        YASMIN_LOG_WARN(e.what());
+
+        YASMIN_LOG_INFO("Waiting for viewer updates to propagate...");
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        break; // only run once for this 
     }
 
-    // Let node and helper go out of scope BEFORE shutdown
-    // (node and its publishers destroyed first)
-    helper.reset();
+    YASMIN_LOG_INFO("Shutting down gracefully...");
     node.reset();
     rclcpp::shutdown();
     return 0;

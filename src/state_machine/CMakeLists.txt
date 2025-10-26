@@ -34,6 +34,7 @@ set(PYTHON_SCRIPTS
 set(CPP_PROGRAMS
   publisher_demo
   yasmin_dji_tello
+  concurrence_demo
   simple_state
 )
 

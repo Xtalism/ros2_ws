@@ -23,21 +23,22 @@ def generate_launch_description() -> LaunchDescription:
     )
     ld.add_action(name_arg)
 
-    # yasmin_dji_tello: Node = Node(
-    #     package=package_name,
-    #     executable="yasmin_dji_tello",
-    #     name=LaunchConfiguration("state_machine"),
-    #     output="screen",
-    # )
-    # ld.add_action(yasmin_dji_tello)
-
-    simple_state: Node = Node(
+    yasmin_dji_tello: Node = Node(
         package=package_name,
-        executable="simple_state",
+        executable="yasmin_dji_tello",
         name=LaunchConfiguration("state_machine"),
         output="screen",
         emulate_tty=True,
     )
-    ld.add_action(simple_state)
+    ld.add_action(yasmin_dji_tello)
+
+    # simple_state: Node = Node(
+    #     package=package_name,
+    #     executable="simple_state",
+    #     name=LaunchConfiguration("state_machine"),
+    #     output="screen",
+    #     emulate_tty=True,
+    # )
+    # ld.add_action(simple_state)
 
     return ld

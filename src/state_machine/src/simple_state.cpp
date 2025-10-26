@@ -61,7 +61,7 @@ public:
         const int max_attempts = 3;
     
         while (attempts < max_attempts) {
-            int handshake = system("ping -c6 -s1 192.168.100.204 > /dev/null 2>&1");
+            int handshake = system("ping -c6 -s1 192.168.100.36 > /dev/null 2>&1");
             if (handshake == 0) {
                 YASMIN_LOG_INFO("Ping success");
                 return yasmin_ros::basic_outcomes::SUCCEED;
@@ -222,7 +222,6 @@ public:
 
 private:
     std::shared_ptr<rclcpp::Node> node_;
-    rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr pub_ping_;
     rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr pub_takeoff_;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_control_;
     rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr pub_land_;
@@ -396,29 +395,29 @@ int main(int argc, char *argv[]) {
     yasmin_viewer::YasminViewerPub yasmin_pub("SIMPLE_STATE", sm);
     auto blackboard = std::make_shared<yasmin::blackboard::Blackboard>();
 
-    // while (rclcpp::ok()) {
-    try {
-        YASMIN_LOG_INFO("Starting state machine execution...");
-        std::string outcome = (*sm.get())(blackboard);
-        YASMIN_LOG_INFO("State machine finished with outcome: %s", outcome.c_str());
+    while (rclcpp::ok()) {
+        try {
+            YASMIN_LOG_INFO("Starting state machine execution...");
+            std::string outcome = (*sm.get())(blackboard);
+            YASMIN_LOG_INFO("State machine finished with outcome: %s", outcome.c_str());
 
-        if (outcome == "keyinterrupt") {
-            YASMIN_LOG_WARN("Mission aborted - emergency landing completed");
-        } else if (outcome == yasmin_ros::basic_outcomes::TIMEOUT) {
-            YASMIN_LOG_WARN("Mission timed out");
-        } else {
-            YASMIN_LOG_INFO("Mission completed successfully");
+            if (outcome == "keyinterrupt") {
+                YASMIN_LOG_WARN("Mission aborted - emergency landing completed");
+            } else if (outcome == yasmin_ros::basic_outcomes::TIMEOUT) {
+                YASMIN_LOG_WARN("Mission timed out");
+            } else {
+                YASMIN_LOG_INFO("Mission completed successfully");
+            }
+            
+            YASMIN_LOG_INFO("Waiting for viewer updates to propagate...");
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            
+        } catch (const std::exception &e) {
+            YASMIN_LOG_ERROR("Exception caught: %s", e.what());
+            YASMIN_LOG_WARN("Attempting emergency landing...");
+            helper->land_cb(blackboard);
         }
-        
-        YASMIN_LOG_INFO("Waiting for viewer updates to propagate...");
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        
-    } catch (const std::exception &e) {
-        YASMIN_LOG_ERROR("Exception caught: %s", e.what());
-        YASMIN_LOG_WARN("Attempting emergency landing...");
-        helper->land_cb(blackboard);
     }
-    // }
 
     YASMIN_LOG_INFO("Shutting down gracefully...");
     helper.reset();
