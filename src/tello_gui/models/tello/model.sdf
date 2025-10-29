@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sdf version='1.9'>
+	<model name='tello_revenant'>
+		<pose>0 0 0.24 0 0 0</pose>
+		<self_collide>false</self_collide>
+		<static>false</static>
+		<link name='base_link'>
+			<pose>0 0 0 0 0 0</pose>
+			<inertial>
+				<mass>0.28</mass>
+				<inertia>
+					<ixx>0.000165</ixx>
+					<ixy>0.0</ixy>
+					<ixz>0.0</ixz>
+					<iyy>0.000151</iyy>
+					<iyz>0.0</iyz>
+					<izz>0.000278</izz>
+				</inertia>
+			</inertial>
+			<gravity>true</gravity>
+			<velocity_decay/>
+			<visual name='base_link_visual'>
+				<pose>0 0 0 0 0 0</pose>
+				<geometry>
+					<mesh>
+						<scale>0.0119 0.012 0.012</scale>
+						<uri>meshes/main.stl</uri>
+					</mesh>
+				</geometry>
+				<material>
+					<script>
+						<name>Gazebo/DarkGray</name>
+						<uri>file://media/materials/scripts/gazebo.material</uri>
+					</script>
+				</material>
+			</visual>
+			<collision name='base_link_collision'>
+				<pose>0 0 0 0 0 0</pose>
+				<geometry>
+					<box>
+						<size>0.09378 0.09885 0.03523</size>
+					</box>
+				</geometry>
+			</collision>
+			<sensor name="air_pressure_sensor" type="air_pressure">
+				<gz_frame_id>base_link</gz_frame_id>
+				<always_on>1</always_on>
+				<update_rate>50</update_rate>
+				<air_pressure>
+					<!-- Noise modeled after BMP390 -->
+					<pressure>
+						<noise type="gaussian">
+							<mean>0</mean>
+							<stddev>3</stddev>
+						</noise>
+					</pressure>
+				</air_pressure>	
+			</sensor>
+			<sensor name="magnetometer_sensor" type="magnetometer">
+				<gz_frame_id>base_link</gz_frame_id>
+				<always_on>1</always_on>
+				<update_rate>100</update_rate>
+				<magnetometer>
+					<!-- TODO: update to fix units and coordinate system when we move past Harmonic -->
+					<!-- See https://github.com/gazebosim/gz-sim/pull/2460 -->
+					<!-- 3mgauss RMS: NOTE: noise is in tesla but sensor reports data in gauss -->
+					<!-- Noise modeled after IIS2MDC -->
+					<x>
+						<noise type="gaussian">
+							<stddev>0.0001</stddev>
+					</noise>
+					</x>
+					<y>
+						<noise type="gaussian">
+							<stddev>0.0001</stddev>
+						</noise>
+					</y>
+					<z>
+						<noise type="gaussian">
+							<stddev>0.0001</stddev>
+						</noise>
+					</z>
+				</magnetometer>
+			</sensor>
+			<sensor name="imu_sensor" type="imu">
+				<gz_frame_id>base_link</gz_frame_id>
+				<always_on>1</always_on>
+				<update_rate>250</update_rate>
+				<imu>
+					<angular_velocity>
+						<!-- Noise modeled after IIM42653 -->
+						<!-- 0.05 deg/s converted to rad/s -->
+						<x>
+							<noise type="gaussian">
+								<mean>0.0</mean>
+								<stddev>0.0008726646</stddev>
+							</noise>
+						</x>
+						<y>
+							<noise type="gaussian">
+								<mean>0.0</mean>
+								<stddev>0.0008726646</stddev>
+							</noise>
+						</y>
+						<z>
+							<noise type="gaussian">
+								<mean>0.0</mean>
+								<stddev>0.0008726646</stddev>
+							</noise>
+						</z>
+					</angular_velocity>
+					<linear_acceleration>
+						<!-- Noise modeled after IIM42653 -->
+						<!-- X & Y axis: 0.65 mg-rms converted to m/ss -->
+						<x>
+							<noise type="gaussian">
+								<mean>0.0</mean>
+								<stddev>0.00637</stddev>
+							</noise>
+						</x>
+						<y>
+							<noise type="gaussian">
+								<mean>0.0</mean>
+								<stddev>0.00637</stddev>
+							</noise>
+						</y>
+						<!-- Z axis: 0.70 mg-rms converted to m/ss-->
+						<z>
+							<noise type="gaussian">
+								<mean>0.0</mean>
+								<stddev>0.00686</stddev>
+							</noise>
+						</z>
+					</linear_acceleration>
+				</imu>
+			</sensor>
+			<sensor name="navsat_sensor" type="navsat">
+				<gz_frame_id>base_link</gz_frame_id>
+				<always_on>1</always_on>
+				<update_rate>30</update_rate>
+			</sensor>
+
+		</link>
+		<link name='rotor_0'>
+			<gravity>true</gravity>
+			<self_collide>false</self_collide>
+			<velocity_decay/>
+			<pose>0.03972 -0.04164 0.02223 0 0 0</pose> 
+			<inertial>
+				<mass>0.0005</mass>
+				<inertia>
+					<ixx>6.94e-10</ixx>
+					<iyy>6.67e-08</iyy>
+					<izz>6.73e-08</izz>
+				</inertia>
+			</inertial>
+			<visual name='rotor_0_visual'>
+				<pose>-0.0057 -0.038 -0.004 0 0 0</pose>
+				<geometry>
+					<mesh>
+						<scale>0.22 0.22 0.22</scale>
+						<uri>meshes/3044_prop_ccw.stl</uri>
+					</mesh>
+				</geometry>
+				<material>
+					<script>
+						<name>Gazebo/Red</name>
+						<uri>file://media/materials/scripts/gazebo.material</uri>
+					</script>
+				</material>
+			</visual>
+			<collision name='rotor_0_collision'>
+				<pose>0 0 0 0 0 0</pose>
+				<geometry>
+					<box>
+						<size>0.07 0.004 0.0008</size>
+					</box>
+				</geometry>
+				<surface>
+					<contact>
+						<ode>
+							<min_depth>0.001</min_depth>
+							<max_vel>0</max_vel>
+						</ode>
+					</contact>
+					<friction>
+						<ode/>
+					</friction>
+				</surface>
+			</collision>
+		</link>
+		<joint name='rotor_0_joint' type='revolute'>
+			<parent>base_link</parent>
+			<child>rotor_0</child>
+			<axis>
+				<xyz>0 0 1</xyz>
+				<limit>
+					<lower>-1e16</lower>
+					<upper>1e16</upper>
+				</limit>
+				<dynamics>
+					<spring_reference>0</spring_reference>
+					<spring_stiffness>0</spring_stiffness>
+				</dynamics>
+			</axis>
+		</joint>
+		<link name='rotor_1'>
+			<gravity>true</gravity>
+			<self_collide>false</self_collide>
+			<velocity_decay/>
+			<pose>-0.03992 0.04224 0.02223 0 0 0</pose> 
+			<inertial>
+				<mass>0.0005</mass>
+				<inertia>
+					<ixx>6.94e-10</ixx>
+					<iyy>6.67e-08</iyy>
+					<izz>6.73e-08</izz>
+				</inertia>
+			</inertial>
+			<visual name='rotor_1_visual'>
+				<pose>-0.0060 -0.03805 -0.004 0 0 0</pose>
+				<geometry>
+					<mesh>
+						<scale>0.22 0.22 0.22</scale>
+						<uri>meshes/3044_prop_ccw.stl</uri>
+					</mesh>
+				</geometry>
+				<material>
+					<script>
+						<name>Gazebo/Black</name>
+						<uri>file://media/materials/scripts/gazebo.material</uri>
+					</script>
+				</material>
+			</visual>
+			<collision name='rotor_1_collision'>
+				<pose>0 0 0 0 0 0</pose>
+				<geometry>
+					<box>
+						<size>0.07 0.004 0.0008</size>
+					</box>
+				</geometry>
+				<surface>
+					<contact>
+						<ode>
+							<min_depth>0.001</min_depth>
+							<max_vel>0</max_vel>
+						</ode>
+					</contact>
+					<friction>
+						<ode/>
+					</friction>
+				</surface>
+			</collision>
+		</link>
+		<joint name='rotor_1_joint' type='revolute'>
+			<parent>base_link</parent>
+			<child>rotor_1</child>
+			<axis>
+				<xyz>0 0 1</xyz>
+				<limit>
+					<lower>-1e16</lower>
+					<upper>1e16</upper>
+				</limit>
+				<dynamics>
+					<spring_reference>0</spring_reference>
+					<spring_stiffness>0</spring_stiffness>
+				</dynamics>
+			</axis>
+		</joint>
+		<link name='rotor_2'>
+			<gravity>true</gravity>
+			<self_collide>false</self_collide>
+			<velocity_decay/>
+			<pose>0.03972 0.04224 0.02223 0 0 0</pose>
+			<inertial>
+				<mass>0.0005</mass>
+				<inertia>
+					<ixx>6.94e-10</ixx>
+					<iyy>6.67e-08</iyy>
+					<izz>6.73e-08</izz>
+				</inertia>
+			</inertial>
+			<visual name='rotor_2_visual'>
+				<pose>-0.0057 -0.038 -0.004 0 0 0</pose>
+				<geometry>
+					<mesh>
+						<scale>0.22 0.22 0.22</scale>
+						<uri>meshes/3044_prop_cw.stl</uri>
+					</mesh>
+				</geometry>
+				<material>
+					<script>
+						<name>Gazebo/Black</name>
+						<uri>file://media/materials/scripts/gazebo.material</uri>
+					</script>
+				</material>
+			</visual>
+			<collision name='rotor_2_collision'>
+				<pose>0 0 0 0 0 0</pose>
+				<geometry>
+					<box>
+						<size>0.07 0.004 0.0008</size>
+					</box>
+				</geometry>
+				<surface>
+					<contact>
+						<ode>
+							<min_depth>0.001</min_depth>
+							<max_vel>0</max_vel>
+						</ode>
+					</contact>
+					<friction>
+						<ode/>
+					</friction>
+				</surface>
+			</collision>
+		</link>
+		<joint name='rotor_2_joint' type='revolute'>
+			<parent>base_link</parent>
+			<child>rotor_2</child>
+			<axis>
+				<xyz>0 0 1</xyz>
+				<limit>
+					<lower>-1e16</lower>
+					<upper>1e16</upper>
+				</limit>
+				<dynamics>
+					<spring_reference>0</spring_reference>
+					<spring_stiffness>0</spring_stiffness>
+				</dynamics>
+			</axis>
+		</joint>
+		<link name='rotor_3'>
+			<gravity>true</gravity>
+			<self_collide>false</self_collide>
+			<velocity_decay/>
+			<pose>-0.03992 -0.04164 0.02223 0 0 0</pose>
+			<inertial>
+				<mass>0.0005</mass>
+				<inertia>
+					<ixx>6.94e-10</ixx>
+					<iyy>6.67e-08</iyy>
+					<izz>6.73e-08</izz>
+				</inertia>
+			</inertial>
+			<visual name='rotor_3_visual'>
+				<pose>-0.0060 -0.038 -0.004 0 0 0</pose>
+				<geometry>
+					<mesh>
+						<scale>0.22 0.22 0.22</scale>
+						<uri>meshes/3044_prop_cw.stl</uri>
+					</mesh>
+				</geometry>
+				<material>
+					<script>
+						<name>Gazebo/Black</name>
+						<uri>file://media/materials/scripts/gazebo.material</uri>
+					</script>
+				</material>
+			</visual>
+			<collision name='rotor_3_collision'>
+				<pose>0 0 0 0 0 0</pose>
+				<geometry>
+					<box>
+						<size>0.07 0.004 0.0008</size>
+					</box>
+				</geometry>
+				<surface>
+					<contact>
+						<ode>
+							<min_depth>0.001</min_depth>
+							<max_vel>0</max_vel>
+						</ode>
+					</contact>
+					<friction>
+						<ode/>
+					</friction>
+				</surface>
+			</collision>
+		</link>
+		<joint name='rotor_3_joint' type='revolute'>
+			<parent>base_link</parent>
+			<child>rotor_3</child>
+			<axis>
+				<xyz>0 0 1</xyz>
+				<limit>
+					<lower>-1e16</lower>
+					<upper>1e16</upper>
+				</limit>
+				<dynamics>
+					<spring_reference>0</spring_reference>
+					<spring_stiffness>0</spring_stiffness>
+				</dynamics>
+			</axis>
+		</joint>
+		<plugin
+			filename="gz-sim-multicopter-motor-model-system"
+			name="gz::sim::systems::MulticopterMotorModel">
+			<rotor>
+				<robotNameSpace>tello_revenant</robotNameSpace>
+				<jointName>rotor_0_joint</jointName>
+				<linkName>rotor_0</linkName>
+				<turningDirection>ccw</turningDirection>
+				<timeConstantUp>0.0125</timeConstantUp>
+				<timeConstantDown>0.025</timeConstantDown>
+				<maxRotVelocity>800.0</maxRotVelocity>
+				<motorConstant>8.54858e-06</motorConstant>
+				<momentConstant>0.016</momentConstant>
+				<commandSubTopic>gazebo/command/motor_speed</commandSubTopic>
+				<actuator_number>0</actuator_number>
+				<rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+				<rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+				<motorSpeedPubTopic>motor_speed/0</motorSpeedPubTopic>
+				<rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+				<motorType>velocity</motorType>
+			</rotor>
+			<rotor>
+				<robotNameSpace>tello_revenant</robotNameSpace>
+				<jointName>rotor_1_joint</jointName>
+				<linkName>rotor_1</linkName>
+				<turningDirection>ccw</turningDirection>
+				<timeConstantUp>0.0125</timeConstantUp>
+				<timeConstantDown>0.025</timeConstantDown>
+				<maxRotVelocity>800.0</maxRotVelocity>
+				<motorConstant>8.54858e-06</motorConstant>
+				<momentConstant>0.016</momentConstant>
+				<commandSubTopic>gazebo/command/motor_speed</commandSubTopic>
+				<actuator_number>1</actuator_number>
+				<rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+				<rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+				<motorSpeedPubTopic>motor_speed/1</motorSpeedPubTopic>
+				<rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+				<motorType>velocity</motorType>
+			</rotor>
+			<rotor>
+				<robotNameSpace>tello_revenant</robotNameSpace>
+				<jointName>rotor_2_joint</jointName>
+				<linkName>rotor_2</linkName>
+				<turningDirection>cw</turningDirection>
+				<timeConstantUp>0.0125</timeConstantUp>
+				<timeConstantDown>0.025</timeConstantDown>
+				<maxRotVelocity>800.0</maxRotVelocity>
+				<motorConstant>8.54858e-06</motorConstant>
+				<momentConstant>0.016</momentConstant>
+				<commandSubTopic>gazebo/command/motor_speed</commandSubTopic>
+				<actuator_number>2</actuator_number>
+				<rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+				<rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+				<motorSpeedPubTopic>motor_speed/2</motorSpeedPubTopic>
+				<rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+				<motorType>velocity</motorType>
+			</rotor>
+			<rotor>
+				<robotNameSpace>tello_revenant</robotNameSpace>
+				<jointName>rotor_3_joint</jointName>
+				<linkName>rotor_3</linkName>
+				<turningDirection>cw</turningDirection>
+				<timeConstantUp>0.0125</timeConstantUp>
+				<timeConstantDown>0.025</timeConstantDown>
+				<maxRotVelocity>800.0</maxRotVelocity>
+				<motorConstant>8.54858e-06</motorConstant>
+				<momentConstant>0.016</momentConstant>
+				<commandSubTopic>gazebo/command/motor_speed</commandSubTopic>
+				<actuator_number>3</actuator_number>
+				<rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+				<rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+				<motorSpeedPubTopic>motor_speed/3</motorSpeedPubTopic>
+				<rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+				<motorType>velocity</motorType>
+			</rotor>
+		</plugin>
+		<plugin
+			filename="gz-sim-multicopter-control-system"
+			name="gz::sim::systems::MulticopterVelocityControl">
+			<robotNameSpace>tello_revenant</robotNameSpace>
+			<commandSubTopic>cmd_vel</commandSubTopic>
+			<enableSubTopic>enable</enableSubTopic>
+			<comLinkName>base_link</comLinkName>
+			<velocityGain>2.7 2.7 2.7</velocityGain>
+			<attitudeGain>2 3 0.15</attitudeGain>
+			<angularRateGain>0.4 0.52 0.18</angularRateGain>
+			<maximumLinearAcceleration>2 2 2</maximumLinearAcceleration>
+			<rotorConfiguration>
+				<rotor>
+					<jointName>rotor_0_joint</jointName>
+					<forceConstant>8.54858e-06</forceConstant>
+					<momentConstant>0.016</momentConstant>
+					<direction>1</direction>
+				</rotor>
+				<rotor>
+					<jointName>rotor_1_joint</jointName>
+					<forceConstant>8.54858e-06</forceConstant>
+					<momentConstant>0.016</momentConstant>
+					<direction>1</direction>
+				</rotor>
+				<rotor>
+					<jointName>rotor_2_joint</jointName>
+					<forceConstant>8.54858e-06</forceConstant>
+					<momentConstant>0.016</momentConstant>
+					<direction>-1</direction>
+				</rotor>
+				<rotor>
+					<jointName>rotor_3_joint</jointName>
+					<forceConstant>8.54858e-06</forceConstant>
+					<momentConstant>0.016</momentConstant>
+					<direction>-1</direction>
+				</rotor>
+			</rotorConfiguration>
+		</plugin>
+	</model>
+</sdf>

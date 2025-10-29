@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot name="tello_revenant">
+	<!-- BASE LINK -->
+	<link name="base_link">
+		<inertial>
+			<origin xyz="0 0 0" />
+			<mass value="0.28"/>
+			<inertia
+				ixx="0.000165" ixy="0.0" ixz="0.0"
+				iyy="0.000151" iyz="0.0"
+				izz="0.000278"/>
+		</inertial>
+		<visual name="base_link_visual">
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<geometry>
+				<mesh filename="file://$(find tello_gui)/models/tello/meshes/main.stl" scale="0.0119 0.012 0.012"/>
+			</geometry>
+			<!-- <material name="dark_grey"/> -->
+		</visual>
+		<collision name="base_link_collision">
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<geometry>
+				<box size="0.09378 0.09885 0.03523"/>
+			</geometry>
+		</collision>
+	</link>
+
+	<!-- ROTOR 0 -->
+	<link name="rotor_0">
+		<inertial>
+			<origin xyz="0 0 0" />
+			<mass value="0.0005"/>
+			<inertia ixx="6.94e-10" ixy="0" ixz="0" iyy="6.67e-08" iyz="0" izz="6.73e-08"/>
+		</inertial>
+		<visual name="rotor_0_visual">
+			<origin xyz="-0.0057 -0.038 -0.004" rpy="0 0 0"/>
+			<geometry>
+				<mesh filename="file://$(find tello_gui)/models/tello/meshes/3044_prop_ccw.stl" scale="0.22 0.22 0.22"/>
+			</geometry>
+			<!-- <material name="red"/> -->
+		</visual>
+		<collision name="rotor_0_collision">
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<geometry>
+				<box size="0.07 0.004 0.0008"/>
+			</geometry>
+		</collision>
+	</link>
+	<joint name="rotor_0_joint" type="revolute">
+		<parent link="base_link"/>
+		<child link="rotor_0"/>
+		<origin xyz="0.03972 -0.04164 0.02223" rpy="0 0 0"/>
+		<axis xyz="0 0 1"/>
+		<limit lower="-1e16" upper="1e16" effort="1" velocity="1"/>
+	</joint>
+
+	<!-- ROTOR 1 -->
+	<link name="rotor_1">
+		<inertial>
+			<origin xyz="0 0 0" />
+			<mass value="0.0005"/>
+			<inertia ixx="6.94e-10" ixy="0" ixz="0" iyy="6.67e-08" iyz="0" izz="6.73e-08"/>
+		</inertial>
+		<visual name="rotor_1_visual">
+			<origin xyz="-0.0060 -0.03805 -0.004" rpy="0 0 0"/>
+			<geometry>
+				<mesh filename="file://$(find tello_gui)/models/tello/meshes/3044_prop_ccw.stl" scale="0.22 0.22 0.22"/>
+			</geometry>
+		</visual>
+		<collision name="rotor_1_collision">
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<geometry>
+				<box size="0.07 0.004 0.0008"/>
+			</geometry>
+		</collision>
+	</link>
+	<joint name="rotor_1_joint" type="revolute">
+		<parent link="base_link"/>
+		<child link="rotor_1"/>
+		<origin xyz="-0.03992 0.04224 0.02223" rpy="0 0 0"/>
+		<axis xyz="0 0 1"/>
+		<limit lower="-1e16" upper="1e16" effort="1" velocity="1"/>
+	</joint>
+
+	<!-- ROTOR 2 -->
+	<link name="rotor_2">
+		<inertial>
+			<origin xyz="0 0 0" />
+			<mass value="0.0005"/>
+			<inertia ixx="6.94e-10" ixy="0" ixz="0" iyy="6.67e-08" iyz="0" izz="6.73e-08"/>
+		</inertial>
+		<visual name="rotor_2_visual">
+			<origin xyz="-0.0057 -0.038 -0.004" rpy="0 0 0"/>
+			<geometry>
+				<mesh filename="file://$(find tello_gui)/models/tello/meshes/3044_prop_cw.stl" scale="0.22 0.22 0.22"/>
+			</geometry>
+		</visual>
+		<collision name="rotor_2_collision">
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<geometry>
+				<box size="0.07 0.004 0.0008"/>
+			</geometry>
+		</collision>
+	</link>
+	<joint name="rotor_2_joint" type="revolute">
+		<parent link="base_link"/>
+		<child link="rotor_2"/>
+		<origin xyz="0.03972 0.04224 0.02223" rpy="0 0 0"/>
+		<axis xyz="0 0 1"/>
+		<limit lower="-1e16" upper="1e16" effort="1" velocity="1"/>
+	</joint>
+
+	<!-- ROTOR 3 -->
+	<link name="rotor_3">
+		<inertial>
+			<origin xyz="0 0 0" />
+			<mass value="0.0005"/>
+			<inertia ixx="6.94e-10" ixy="0" ixz="0" iyy="6.67e-08" iyz="0" izz="6.73e-08"/>
+		</inertial>
+		<visual name="rotor_3_visual">
+			<origin xyz="-0.0060 -0.038 -0.004" rpy="0 0 0"/>
+			<geometry>
+				<mesh filename="file://$(find tello_gui)/models/tello/meshes/3044_prop_cw.stl" scale="0.22 0.22 0.22"/>
+			</geometry>
+		</visual>
+		<collision name="rotor_3_collision">
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<geometry>
+				<box size="0.07 0.004 0.0008"/>
+			</geometry>
+		</collision>
+	</link>
+	<joint name="rotor_3_joint" type="revolute">
+		<parent link="base_link"/>
+		<child link="rotor_3"/>
+		<origin xyz="-0.03992 -0.04164 0.02223" rpy="0 0 0"/>
+		<axis xyz="0 0 1"/>
+		<limit lower="-1e16" upper="1e16" effort="1" velocity="1"/>
+	</joint>
+</robot>
