@@ -65,15 +65,15 @@ def generate_launch_description() -> LaunchDescription:
     )
     ld.add_action(tello_driver_node)
 
-    # tello_control_node: Node = Node(
-    #     package="tello_control",
-    #     executable="tello_control",
-    #     output="screen",
-    #     namespace="/",
-    #     name="control",
-    #     respawn=False,
-    # )
-    # ld.add_action(tello_control_node)
+    tello_control_node: Node = Node(
+        package="tello_control",
+        executable="tello_control",
+        output="screen",
+        namespace="/",
+        name="control",
+        respawn=False,
+    )
+    ld.add_action(tello_control_node)
 
     # auto_twist: Node = Node(
     #     package="tello_control",
@@ -105,23 +105,15 @@ def generate_launch_description() -> LaunchDescription:
     # )
     # ld.add_action(simple_state)
 
-    yasmin_dji_tello: Node = Node(
-        package="state_machine",
-        executable="yasmin_dji_tello",
-        output="screen",
-        namespace="/",
-        name="control",
-        respawn=False,
-    )
-    ld.add_action(yasmin_dji_tello)
-
-    # yasmin_viewer_node: Node = Node(
+    # yasmin_dji_tello: Node = Node(
     #     package="state_machine",
-    #     executable="yasmin_viewer_node",
-    #     # output="screen",
-    #     # respawn=False,
+    #     executable="yasmin_dji_tello",
+    #     output="screen",
+    #     namespace="/",
+    #     name="control",
+    #     respawn=False,
     # )
-    # ld.add_action(yasmin_viewer_node)
+    # ld.add_action(yasmin_dji_tello)
 
     tello_tf_node: Node = Node(
         package="tf2_ros",

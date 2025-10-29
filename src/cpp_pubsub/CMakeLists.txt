@@ -8,18 +8,25 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
-add_executable(talker src/pub_template.cpp)
-ament_target_dependencies(talker rclcpp std_msgs)
-
-add_executable(listener src/sub_template.cpp)
-ament_target_dependencies(listener rclcpp std_msgs)
-
-install(TARGETS
-  talker
-  listener
-  DESTINATION lib/${PROJECT_NAME}
+set(PROGRAM_NAMES
+  pub_template
+  sub_template
+  sub_percentage
 )
+
+set(DEPENDENCIES
+  rclcpp
+  std_msgs
+  sensor_msgs
+)
+
+foreach(PROGRAM_NAME ${PROGRAM_NAMES})
+  add_executable(${PROGRAM_NAME} src/${PROGRAM_NAME}.cpp)
+  ament_target_dependencies(${PROGRAM_NAME} ${DEPENDENCIES})
+  install(TARGETS ${PROGRAM_NAME} DESTINATION lib/${PROJECT_NAME})
+endforeach()
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

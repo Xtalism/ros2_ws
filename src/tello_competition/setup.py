@@ -21,6 +21,9 @@ setup(
     license="TODO: License declaration",
     tests_require=["pytest"],
     entry_points={
-        "console_scripts": [],
+        "console_scripts": [
+            'cap_image = tello_competition.cap_image:main',
+            'camera_calibration = tello_competition.camera_calibration:main'
+        ],
     },
 )

@@ -4,9 +4,9 @@
 int main(int argc, char *argv[]) {
     YASMIN_LOG_INFO("SIMPLE_STATE");
     rclcpp::init(argc, argv);
+    // rclcpp::spin(std::make_shared<ROS2_Subscriber>());
 
     std::signal(SIGINT, signal_handler);
-
     yasmin_ros::set_ros_loggers();
 
     auto node = std::make_shared<rclcpp::Node>("yasmin_cbstate_helper");
@@ -63,6 +63,7 @@ int main(int argc, char *argv[]) {
     auto blackboard = std::make_shared<yasmin::blackboard::Blackboard>();
 
     while (rclcpp::ok()) {
+        rclcpp::spin_some(node);
         try {
             YASMIN_LOG_INFO("Starting state machine execution...");
             std::string outcome = (*sm.get())(blackboard);

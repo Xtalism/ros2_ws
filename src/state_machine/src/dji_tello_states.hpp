@@ -7,6 +7,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/empty.hpp"
 #include "geometry_msgs/msg/twist.hpp"
+#include <sensor_msgs/msg/battery_state.hpp>
 #include "yasmin/cb_state.hpp"
 #include "yasmin/logs.hpp"
 #include "yasmin/state_machine.hpp"
@@ -15,6 +16,7 @@
 #include "yasmin_viewer/yasmin_viewer_pub.hpp"
 
 static std::atomic<bool> g_interrupt_requested{false};
+using std::placeholders::_1;
 // inline const char* ip_address = "192.168.10.1";
 inline const char* ip_address = "192.168.100.204";
 
@@ -39,12 +41,18 @@ void signal_handler(int signum) {
 
 class YasminRos {
 public:
-    explicit YasminRos(std::shared_ptr<rclcpp::Node> node)
-        : node_(node)
+    YasminRos(std::shared_ptr<rclcpp::Node> node)
+        : node_(node), battery_percentage_(100.0)
     {
         pub_takeoff_ = node_->create_publisher<std_msgs::msg::Empty>("takeoff", 10);
         pub_control_ = node_->create_publisher<geometry_msgs::msg::Twist>("control", 10);
         pub_land_    = node_->create_publisher<std_msgs::msg::Empty>("land", 10);
+        sub_battery_ = node_->create_subscription<sensor_msgs::msg::BatteryState>(
+            "/battery", 10,
+            [this](const sensor_msgs::msg::BatteryState::SharedPtr msg) {
+                battery_percentage_ = msg->percentage;
+                YASMIN_LOG_INFO("Battery Percentage: %.2f", battery_percentage_);
+            });
     }
 
     template<typename MessageType>
@@ -64,12 +72,15 @@ public:
     rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr get_takeoff_pub() const { return pub_takeoff_; }
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr get_control_pub() const { return pub_control_; }
     rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr get_land_pub() const { return pub_land_; }
+    double get_battery_percentage() const { return battery_percentage_; }
 
 private:
     std::shared_ptr<rclcpp::Node> node_;
     rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr pub_takeoff_;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_control_;
     rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr pub_land_;
+    rclcpp::Subscription<sensor_msgs::msg::BatteryState>::SharedPtr sub_battery_;
+    double battery_percentage_;
 };
 
 class StateHandler : public yasmin::State {
