@@ -67,7 +67,7 @@ def main():
         "square_size": square_size,
     }
 
-    with open("camera_calibration/dji_tello/camera_parameters.yaml", "w") as f:
+    with open("camera_calibration/dji_tello.yaml", "w") as f:
         yaml.dump(camera_parameters, f)
 
 if __name__ == "__main__":

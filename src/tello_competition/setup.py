@@ -22,8 +22,8 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            'cap_image = tello_competition.cap_image:main',
-            'camera_calibration = tello_competition.camera_calibration:main'
+            'cameraShot = tello_competition.cameraShot:main',
+            'cameraCalibration = tello_competition.cameraCalibration:main'
         ],
     },
 )

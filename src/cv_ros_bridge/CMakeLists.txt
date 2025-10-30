@@ -28,14 +28,16 @@ set(PYTHON_SCRIPTS
   cv_ros_bridge
   cv_ros_bridge_talker
   cv_ros_bridge_listener
-  image_publisher
-  image_splitter
-  image_threshold
-  image_erotion
-  image_dilation
-  edge_detection
-  line_detection
-  sobel_derivative
+  imagePublisher
+  imageSplitter
+  imageThreshold
+  imageErotion
+  imageDilation
+  edgeDetection
+  lineDetection
+  sobelDerivative
+  arucoDetector
+  arucoPub
 )
 
 foreach(script ${PYTHON_SCRIPTS})
