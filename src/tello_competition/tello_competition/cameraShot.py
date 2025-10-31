@@ -5,7 +5,6 @@ from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 
 class TelloImage(Node):
-
     def __init__(self):
         super().__init__('tello_image')
         self.subscription = self.create_subscription(

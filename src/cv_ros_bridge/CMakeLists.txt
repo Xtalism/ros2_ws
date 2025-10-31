@@ -37,7 +37,7 @@ set(PYTHON_SCRIPTS
   lineDetection
   sobelDerivative
   arucoDetector
-  arucoPub
+  test
 )
 
 foreach(script ${PYTHON_SCRIPTS})

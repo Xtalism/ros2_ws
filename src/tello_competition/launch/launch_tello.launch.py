@@ -6,8 +6,9 @@ from launch import LaunchDescription
 from launch.actions import LogInfo, OpaqueFunction, Shutdown
 from launch_ros.actions import Node
 
-SSID_OBJETIVO = "TELLO-9A0D42"
+# SSID_OBJETIVO = "TELLO-9A0D42"
 # SSID_OBJETIVO = "TELLO-A04B3A"
+SSID_OBJETIVO = "TELLO-5C8A2D"
 # SSID_OBJETIVO = "ConectaUACJ"
 # SSID_OBJETIVO = "MotherBase"
 
@@ -150,7 +151,7 @@ def generate_launch_description() -> LaunchDescription:
         output="screen",
         namespace="/",
         name="rviz",
-        arguments=["-d", "/home/xtal/ros2_ws/src/tello_competition/rviz/tello.rviz"],
+        arguments=["-d", "/home/xtal/ros2_ws/src/tello_competition/config/tello.rviz"],
         respawn=True,
     )
     ld.add_action(rviz_node)
