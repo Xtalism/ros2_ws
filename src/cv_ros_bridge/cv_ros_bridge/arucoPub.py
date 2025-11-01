@@ -13,24 +13,40 @@ def set_rt(obj, R, t, field_t, field_r):
     for attr, value in zip(['x', 'y', 'z', 'w'], quat):
         setattr(rot, attr, float(value))
 
-def publish_visualization(R, t, publisher, clock, frame_id):
+def marker_scale(marker_type, scale_x, scale_y, scale_z, color_r, color_g, 
+                 color_b, color_a, marker_action=None, mesh_resource=None):
     marker = Marker()
-    marker.header.frame_id = frame_id
-    marker.header.stamp = clock.now().to_msg()
     marker.ns = "aruco"
     marker.id = 0
-    marker.type = Marker.CUBE
-    marker.action = Marker.ADD
+    marker.type = marker_type
+    marker.scale.x = scale_x
+    marker.scale.y = scale_y
+    marker.scale.z = scale_z
+    marker.color.r = color_r
+    marker.color.g = color_g
+    marker.color.b = color_b
+    marker.color.a = color_a
+    marker.lifetime.sec = 0
+    if marker_type == Marker.MESH_RESOURCE and mesh_resource is not None:
+        marker.mesh_resource = mesh_resource
+        marker.mesh_use_embedded_materials = True
+    else:
+        marker.action = marker_action
+    return marker
+
+def publish_visualization(R, t, publisher, clock, frame_id, is_marker=True):
+    if is_marker:
+        marker = marker_scale(Marker.CUBE, 0.05, 0.03, 0.03, 0.1, 0.3, 1.0, 1.0, marker_action=Marker.ADD)
+        marker.header.frame_id = frame_id
+        marker.header.stamp = clock.now().to_msg()
+    else:
+        marker = marker_scale(Marker.MESH_RESOURCE, 0.0005, 0.0005, 0.0005, 0.5, 0.5, 0.5, 1.0, 
+                              mesh_resource="file:///home/xtal/ros2_ws/mesh/D435_Solid.stl")
+        marker.header.frame_id = frame_id
+        marker.header.stamp = clock.now().to_msg()
     marker.pose = Pose()
     set_rt(marker.pose, R, t, 'position', 'orientation')
-    marker.scale.x = 0.05
-    marker.scale.y = 0.03
-    marker.scale.z = 0.03
-    marker.color.r = 0.1
-    marker.color.g = 0.3
-    marker.color.b = 1.0
-    marker.color.a = 1.0
-    marker.lifetime.sec = 0
+
     publisher.publish(marker)
 
 def publish_pose(R, t, publisher, clock, frame_id):

@@ -64,13 +64,13 @@ class ArucoImage(Node):
 
             publish_pose(R, t, self.marker_pose_pub, clock, frame_id="camera_link")
             publish_tf(R, t, self.tf_broadcaster, clock, parent_frame="camera_link", child_frame="aruco_marker")
-            publish_visualization(R, t, self.marker_viz, clock, frame_id="camera_link")
+            publish_visualization(R, t, self.marker_viz, clock, frame_id="camera_link", is_marker=True)
 
             R_inv = R.T
             t_inv = -R_inv @ t
             publish_pose(R_inv, t_inv, self.camera_pose_pub, clock, frame_id="aruco_marker")
             publish_tf(R_inv, t_inv, self.tf_broadcaster, clock, parent_frame="aruco_marker", child_frame="camera_link")
-            publish_visualization(R_inv, t_inv, self.camera_viz, clock, frame_id="aruco_marker")
+            publish_visualization(R_inv, t_inv, self.camera_viz, clock, frame_id="aruco_marker", is_marker=False)
 
         msg_raw = self.bridge.cv2_to_imgmsg(frame, encoding="bgr8")
         msg_raw.header.frame_id = "camera_link"
