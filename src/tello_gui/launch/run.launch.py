@@ -92,5 +92,25 @@ def generate_launch_description():
         ],
         output='screen'
     ))
+    
+    launch.add_action(Node(
+        package="ros_gz_bridge",
+        executable="parameter_bridge",
+        arguments=[
+            "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
+            "/takeoff@std_msgs/msg/Empty@gz.msgs.Empty",
+            "/land@std_msgs/msg/Empty@gz.msgs.Empty",
+            "/emergency@std_msgs/msg/Empty@gz.msgs.Empty",
+            "/tf@tf2_msgs/msg/TFMessage@gz.msgs.Pose_V",
+            "/tf_static@tf2_msgs/msg/TFMessage@gz.msgs.Pose_V",
+            # "/robot_description@std_msgs/msgs/String@gz.msgs.StringMsg"
+            "/flip@std_msgs/msg/String@gz.msgs.StringMsg",
+            "/imu/data@sensor_msgs/msg/Imu@gz.msgs.IMU",
+            "/control@geometry_msgs/msg/Twist@gz.msgs.Twist",
+            "/camera@sensor_msgs/msg/Image@gz.msgs.Image",
+            "/joint_states@sensor_msgs/msg/JointState@gz.msgs.Model",
+            "/initialpose@geometry_msgs/msg/PoseWithCovarianceStamped@gz.msgs.PoseWithCovariance",
+        ]
+    ))
 
     return launch
