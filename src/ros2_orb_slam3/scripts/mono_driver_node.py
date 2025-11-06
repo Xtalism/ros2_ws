@@ -29,10 +29,10 @@ import natsort  # To ensure all images are chosen loaded in the correct order
 
 # * ROS2 imports
 import rclpy
-from cv_bridge import (  # Library to convert image messages to numpy array
+from cv_bridge import (
     CvBridge,
     CvBridgeError,
-)
+)  # Library to convert image messages to numpy array
 from rclpy.node import Node
 
 # If you have more files in the submodules folder

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.5)
 project(rviz_camera_marker_plugin)
 
 # Default to C99
@@ -20,6 +20,7 @@ find_package(ament_cmake_ros REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rviz_common REQUIRED)
 find_package(rviz_camera_marker_msg REQUIRED)
+find_package(rviz_rendering REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 qt5_wrap_cpp(MOC_FILES
@@ -35,6 +36,7 @@ ament_target_dependencies(point_display
   pluginlib
   rviz_common
   rviz_camera_marker_msg
+  rviz_rendering
 )
 install(TARGETS point_display
         EXPORT export_rviz_plugin_tutorial

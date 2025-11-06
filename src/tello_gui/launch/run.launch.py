@@ -110,6 +110,10 @@ def generate_launch_description():
             "/camera@sensor_msgs/msg/Image@gz.msgs.Image",
             "/joint_states@sensor_msgs/msg/JointState@gz.msgs.Model",
             "/initialpose@geometry_msgs/msg/PoseWithCovarianceStamped@gz.msgs.PoseWithCovariance",
+        ],
+        output="screen",
+        parameters=[
+            {'use_sim_time': True},
         ]
     ))
 

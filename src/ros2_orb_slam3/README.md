@@ -1,13 +1,13 @@
 ![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
 ![Build Status](https://img.shields.io/badge/Build-Passing-success.svg)
-![ROS2](https://img.shields.io/badge/ROS2-Jazzy-purple.svg)
+![ROS2](https://img.shields.io/badge/ROS2-Humble-blue.svg)
 ![Version](https://img.shields.io/badge/Version-2.0.0-blue.svg)
 
 # ROS2 ORB SLAM3 V1.0 package 
 
-A ROS2 package for ORB SLAM3 V1.0. Focus is on native integration with ROS2 ecosystem. This is version `2.0.0` that is built and tested to be compatible with ROS 2 Jazzy. Due to some dependency and workarounds, **this version is not compatible with ROS 2 Humble**. Switch to the `main` branch for a ROS 2 Humble compatible version
+A ROS2 package for ORB SLAM3 V1.0. Focus is on native integration with ROS2 ecosystem. This is the `main/humble` branch which only supports ROS 2 Humble. Switch over to `jazzy` branch to use with ROS 2 Jazzy.
 
-My goal is to provide a "bare-bones" starting point for developers in using ORB SLAM3 framework in their ROS 2 projects. Hence, this package will not use more advanced features of ROS 2 such as rviz, tf and launch files. This project structure is heavily influenced by the excellent ROS1 port of ORB SLAM3 by [thien94](https://github.com/thien94/orb_slam3_ros/tree/master). 
+My goal is to provide a "bare-bones" starting point for developers in using ORB SLAM3 framework in their ROS 2 projects. Hence, this package will not use any advanced features of ROS 2 such as rviz, tf, launch files etc. The project structure is heavily influenced by the excellent ROS1 port of ORB SLAM3 by [thien94](https://github.com/thien94/orb_slam3_ros/tree/master). 
 
 If you find this work useful please consider citing the original ORB-SLAM3 paper and my recent paper that uses this package in solving short-term relocalization (kidnapped robot problem) as shown below
 
@@ -40,20 +40,15 @@ If you find this work useful please consider citing the original ORB-SLAM3 paper
 
 ## 0. Preamble
 
-This package builds [ORB-SLAM3](https://github.com/UZ-SLAMLab/ORB_SLAM3) `V1.0` as a shared internal library. Comes included with a number of Thirdparty libraries [DBoW2, g2o, Sophus]
-
-`g2o` used packaged with `ORB-SLAM3` is a much older version and is incompatible with the latest release found here [g2o github page](https://github.com/RainerKuemmerle/g2o). If you are willing to make the forward port, please open a Ticket in this repository.
-
-This package differs from other ROS1 wrappers, `thien94`s ROS 1 port and ROS 2 wrappers in GitHub by supprting/adopting the following
+* This package builds [ORB-SLAM3](https://github.com/UZ-SLAMLab/ORB_SLAM3) V1.0 as a shared internal library. Comes included with a number of Thirdparty libraries [DBoW2, g2o, Sophus]
+* g2o used is an older version and is incompatible with the latest release found here [g2o github page](https://github.com/RainerKuemmerle/g2o).
+* This package differs from other ROS1 wrappers, thien94`s ROS 1 port and ROS 2 wrappers in GitHub by supprting/adopting the following
   * A separate python node to send data to the ORB-SLAM3 cpp node. This is purely a design choice.
-  * C++17 and Cmake>=3.8
-  * Eigen 3.3.0, OpenCV>= 4.2, 
-  * Latest version of Pangolin
-  * Comes with a small test image sequence from EuRoC MAV dataset (MH05) to quickly test installation
-
-For newcomers into the ROS 2 ecosystem, this package serves as an example of `building a shared cpp library` and also `a package with both cpp and python nodes`.
-
-* In **resource constrainted hardwares** such as Raspberry Pi 4, Jetson Nano Orin, you need to extend `SWAP` space to at least `16Gb`. 
+  * At least C++17 and Cmake>=3.8
+  * Eigen 3.3.0, OpenCV 4.2, latest release of Pangolin
+* Comes with a small test image sequence from EuRoC MAV dataset (MH05) to quickly test installation
+* For newcomers in ROS2 ecosystem, this package serves as an example of building a shared cpp library and also a package with both cpp and python nodes.
+* May not build or work correctly in **resource constrainted hardwares** such as Raspberry Pi 4, Jetson Nano
 
 ## Testing platforms
 
@@ -89,28 +84,20 @@ sudo cmake --install build
 
 #### Configure dynamic library
 
-`LD_LIBRARY_PATH` is an environment variable that tells the dynamic linker where to search for shared libraries (.so files) at runtime. First we check if ```/usr/lib/local``` is available in `LD_LIBRARY_PATH`.
+Check if ```/usr/lib/local``` is in the LIBRARY PATH
 
 ```bash
 echo $LD_LIBRARY_PATH
 ```
 
-If you see no output as shown below 
-
-```bash
-/opt/ros/jazzy/opt/gz_sim_vendor/lib:.....:/usr/lib/local
-```
-
-then `/usr/local/lib` is currently not in the `LD_LIBRARY_PATH` add it as shown below 
+If not, then perform the following 
 
 ```bash
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/local
 sudo ldconfig
 ```
 
-##### Optional Step: Add /usr/local/lib permanently by modifying .bashrc
-
-Open the ```.bashrc``` file in ```\home``` directory and add these lines at the very end
+Then open the ```.bashrc``` file in ```\home``` directory and add these lines at the very end
 
 ```bash
 if [[ ":$LD_LIBRARY_PATH:" != *":/usr/local/lib:"* ]]; then
@@ -124,61 +111,25 @@ Finally, source ```.bashrc``` file
 source ~/.bashrc
 ```
  
-#### OpenCV
-By default both Ubuntu 22.04 and Ubuntu 24.04 comes with >OpenCV 4.2. Check to make sure you have at least 4.2 installed. Run the following in a terminal
+### OpenCV
+Ubuntu 22.04 by default comes with >OpenCV 4.2. Check to make sure you have at least 4.2 installed. Run the following in a terminal
 
 ```bash
 python3 -c "import cv2; print(cv2.__version__)" 
 ```
 
-#### cv_brdige
-
-Check to ensure `cv_bridge` package is installed in the `BASE WORKSPACE` i.e. `/ros/opt/<ROS-DISTRO>`. Try the following
-
-```bash
-ros2 pkg list | grep cv_bridge
-```
-
-If the string `cv_brdige` did not show up, install it as shown bellow
-
-```bash
-source /opt/ros/<ROS-DISTRO>/setup.bash
-sudo apt-get install ros-<ROS-DISTRO>-cv-bridge 
-```
-
-#### Create symbolic link to OpenCV 4.6 (or a later version installed)
-
-As of June 2025, it appears the `.so` objects for `g2o` library was compiled against OpenCV 4.5d which is absent in Ubuntu 24.04 Humble. This error is seen without creating a symbolic link
-
-```bash
-ros2 run ros2_orb_slam3 mono_node_cpp --ros-args -p node_name_arg:=mono_slam_cpp
-/home/az-ubuntu-2204/ros2_ws/install/ros2_orb_slam3/lib/ros2_orb_slam3/mono_node_cpp: error while loading shared libraries: libopencv_core.so.4.5d: cannot open shared object file: No such file or directory
-```
-
-To circumvent this problem, create a symbolic link to `libopencv_core.so.4.6`
-
-```bash
-sudo ln -s /lib/x86_64-linux-gnu/libopencv_core.so.406 /lib/x86_64-linux-gnu/libopencv_core.so.4.5d
-```
-
-NOTE 1: The above only persists until system is rebooted, I leave it to the user to decide on a more `permanent` approach then the one shown above. In my testing, this setting appears to be persist beyond one system reboot.
-
-NOTE 2: A permanent solution to the above is recompiling `g2o` library. I had made some changes to the `CmakeLists.txt` file for the `g2o` package shipped in the `Thirdparty` directory but it needs more work. Please open a Pull Request if you figure out how to rebuild `g2o` to link against OpenCV version available in a system (should be agnostic to Ubuntu 22.04 / Ubuntu 24.04 i.e. works with the installed version of OpenCV present in the system).
-
-
 ## 2. Installation
 
-Follow the steps below to create the ```ros2_ws``` workspace, install dependencies and build the package. Note, the workspace must be named ```ros2_ws``` due to a `HARDCODED` path in the `MonoDriver` class in the `mono_driver_node.py` script and path to the config YAML file. I leave it to the developers to change this behavior as they see fit.
+Follow the steps below to create the ```ros2_test``` workspace, install dependencies and build the package. Note, the workspace must be named ```ros2_test``` due to a HARDCODED path in the python node. I leave it to the developers to change this behavior as they see fit.
 
 ```bash
 cd ~
-mkdir -p ~/ros2_ws/src
-cd ~/ros2_ws/src
+mkdir -p ~/ros2_test/src
+cd ~/ros2_test/src
 git clone https://github.com/Mechazo11/ros2_orb_slam3.git
 cd .. # make sure you are in ~/ros2_ws root directory
-rosdep update
-rosdep install -r --from-paths src --ignore-src -y --rosdistro <ROS-DISTRO>
-source /opt/ros/<ROS-DISTRO>/setup.bash
+rosdep install -r --from-paths src --ignore-src -y --rosdistro humble
+source /opt/ros/humble/setup.bash
 colcon build --symlink-install
 ```
 
@@ -196,7 +147,7 @@ ros2 run ros2_orb_slam3 mono_node_cpp --ros-args -p node_name_arg:=mono_slam_cpp
 In another terminal [python node]
 
 ```bash
-cd ~/ros2_ws/
+cd ~/ros2_ws
 source ./install/setup.bash
 ros2 run ros2_orb_slam3 mono_driver_node.py --ros-args -p settings_name:=EuRoC -p image_seq:=sample_euroc_MH05
 ```

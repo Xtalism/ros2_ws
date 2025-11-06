@@ -18,7 +18,17 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(std_msgs REQUIRED)
-rosidl_generate_interfaces(${PROJECT_NAME} msg/Point2D.msg DEPENDENCIES std_msgs)
+
+set(msg_files
+  "msg/Point2D.msg"
+  "msg/Point3D.msg"
+)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  ${msg_files}
+  DEPENDENCIES std_msgs
+  ADD_LINTER_TESTS
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

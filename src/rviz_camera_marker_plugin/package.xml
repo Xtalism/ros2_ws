@@ -8,12 +8,26 @@
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_vendor_package</buildtool_depend>
+
+  <build_depend>libfreetype-dev</build_depend>
+  <build_export_depend>libfreetype-dev</build_export_depend>
+  <build_export_depend>libglew-dev</build_export_depend>
+
+  <exec_depend>libfreetype6</exec_depend>
+
   <depend>pluginlib</depend>
   <depend>rviz_common</depend>
+  <depend>rviz_rendering</depend>
   <depend>rviz_camera_marker_msg</depend>
+  <depend>libx11-dev</depend>
+  <depend>libxaw</depend>
+  <depend>libxrandr</depend>
+  <depend>opengl</depend>
 
-  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_cmake_xmllint</test_depend>
   <test_depend>ament_lint_common</test_depend>
+  <test_depend>ament_lint_auto</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

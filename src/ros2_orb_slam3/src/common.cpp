@@ -21,7 +21,6 @@ MonocularMode::MonocularMode() :Node("mono_node_cpp")
     
     //* Find path to home directory
     homeDir = getenv("HOME");
-    packagePath = "ros2_ws/src/ros2_orb_slam3/"; // !HARDCODED, change it as necessary
     // std::cout<<"Home: "<<homeDir<<std::endl;
     
     // std::cout<<"VLSAM NODE STARTED\n\n";
@@ -68,8 +67,7 @@ MonocularMode::MonocularMode() :Node("mono_node_cpp")
     
     subexperimentconfigName = "/mono_py_driver/experiment_settings"; // topic that sends out some configuration parameters to the cpp ndoe
     pubconfigackName = "/mono_py_driver/exp_settings_ack"; // send an acknowledgement to the python node
-    // subImgMsgName = "/mono_py_driver/img_msg"; // topic to receive RGB image messages
-    subImgMsgName = "/image";
+    subImgMsgName = "/mono_py_driver/img_msg"; // topic to receive RGB image messages
     subTimestepMsgName = "/mono_py_driver/timestep_msg"; // topic to receive RGB image messages
 
     //* subscribe to python node to receive settings

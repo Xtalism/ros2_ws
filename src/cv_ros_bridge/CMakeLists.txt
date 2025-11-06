@@ -37,7 +37,8 @@ set(PYTHON_SCRIPTS
   lineDetection
   sobelDerivative
   arucoDetector
-  test
+  camera_shot
+  camera_calibration
 )
 
 foreach(script ${PYTHON_SCRIPTS})

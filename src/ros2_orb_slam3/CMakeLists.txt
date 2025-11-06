@@ -21,7 +21,7 @@ find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 # find_package(your_custom_msg_interface REQUIRED)
 find_package(cv_bridge REQUIRED)
-find_package(OpenCV 4.6 REQUIRED) # In Ubuntu 24.04 4.6 or greater is required
+find_package(OpenCV 4.2 REQUIRED)
 find_package(Eigen3 3.3.0 REQUIRED) # Matched with Sophus
 find_package(Pangolin REQUIRED)
 find_package(image_transport REQUIRED)
@@ -154,7 +154,8 @@ install(FILES ${g2o_PATH} DESTINATION lib)
 # Add executable
 add_executable(mono_node_cpp
   src/mono_example.cpp
-  src/common.cpp
+  # src/common.cpp
+  src/tello_slam.cpp
 )
 
 ament_target_dependencies(mono_node_cpp
@@ -191,7 +192,7 @@ ament_export_dependencies(
 # Install Python modules, submodules
 ament_python_install_package(${PROJECT_NAME}) # Install the modules in ros2_orb_slam3/ros2_orb_slam3 folder
 
-# Install Python executables
+# Install Python executibles
 install(PROGRAMS
   scripts/mono_driver_node.py
   DESTINATION lib/${PROJECT_NAME}

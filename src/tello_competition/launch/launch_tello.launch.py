@@ -6,12 +6,12 @@ from launch import LaunchDescription
 from launch.actions import LogInfo, OpaqueFunction, Shutdown
 from launch_ros.actions import Node
 
-# SSID_OBJETIVO = "TELLO-9A0D42"
-# SSID_OBJETIVO = "TELLO-A04B3A"
-SSID_OBJETIVO = "Totalplay-5G-5970"
-# SSID_OBJETIVO = "TELLO-5C8A2D"
-# SSID_OBJETIVO = "ConectaUACJ"
-# SSID_OBJETIVO = "MotherBase"
+TARGET_SSID = "TELLO-9A0D42"
+# TARGET_SSID = "TELLO-A04B3A"
+# TARGET_SSID = "Totalplay-5G-5970"
+# TARGET_SSID = "TELLO-5C8A2D"
+# TARGET_SSID = "ConectaUACJ"
+# TARGET_SSID = "MotherBase"
 
 
 def verificar_ssid(context, *args, **kwargs):
@@ -28,12 +28,12 @@ def verificar_ssid(context, *args, **kwargs):
             if linea.startswith("yes:")
         ]
 
-        if SSID_OBJETIVO in ssids_activos:
+        if TARGET_SSID in ssids_activos:
             return []
         else:
             return [
                 LogInfo(
-                    msg=f"SSID incorrecto. Se esperaba '{SSID_OBJETIVO}', pero se encontró: {ssids_activos}"
+                    msg=f"SSID incorrecto. Se esperaba '{TARGET_SSID}', pero se encontró: {ssids_activos}"
                 ),
                 Shutdown(reason="SSID no válido"),
             ]
@@ -167,6 +167,19 @@ def generate_launch_description() -> LaunchDescription:
         respawn=True,
     )
     ld.add_action(imu_filter_node)
+
+    orb_slam3 = Node(
+        package="ros2_orb_slam3",
+        executable="mono_node_cpp",
+        output="screen",
+        name="orb_slam3",
+        parameters=[
+            {"node_name_arg": "orb_slam3"},
+            {"config_name": "dji_tello_slam"},  # Name of your YAML config
+        ],
+    )
+    ld.add_action(orb_slam3)
+    
 
     # ld.add_action(ExecuteProcess(cmd=["ros2", "bag", "record", "-a"], output="screen"))
 

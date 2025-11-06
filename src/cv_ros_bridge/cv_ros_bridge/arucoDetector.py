@@ -18,7 +18,7 @@ class ArucoImage(Node):
     def __init__(self):
         super().__init__('ArucoImage')
         self.bridge = CvBridge()
-        self.image_raw = self.create_publisher(Image, 'camera/image_raw', 10)
+        self.image_raw = self.create_publisher(Image, 'camera/image_raw', 50)
         self.image_aruco = self.create_publisher(Image, 'camera/image_aruco', 10)
         self.marker_pose_pub = self.create_publisher(PoseStamped, 'marker/pose', 10)
         self.camera_pose_pub = self.create_publisher(PoseStamped, 'camera/pose', 10)
