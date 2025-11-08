@@ -151,32 +151,47 @@ install(FILES ${DBoW2_PATH} DESTINATION lib)
 install(FILES ${g2o_PATH} DESTINATION lib)
 
 
-# Add executable
-add_executable(mono_node_cpp
-  src/mono_example.cpp
-  # src/common.cpp
+# # Add executable
+# add_executable(mono_node_cpp
+#   src/mono_example.cpp
+#   src/common.cpp
+# )
+
+add_executable(tello_slam_cpp
+  src/main.cpp
   src/tello_slam.cpp
 )
 
-ament_target_dependencies(mono_node_cpp
-  PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS}
+add_executable(tello_imu_slam_cpp
+  src/main.cpp
+  src/tello_imu_slam.cpp
 )
 
-target_link_libraries(mono_node_cpp PUBLIC orb_slam3_lib) # Link a node with the internal shared library
+set(EXECUTABLES
+  # mono_node_cpp
+  tello_slam_cpp
+  tello_imu_slam_cpp
+)
 
+foreach(EXECUTABLE ${EXECUTABLES})
+  ament_target_dependencies(${EXECUTABLE} PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
+  install(TARGETS ${EXECUTABLE} DESTINATION lib/${PROJECT_NAME})
+  target_link_libraries(${EXECUTABLE} PUBLIC orb_slam3_lib)
+endforeach()
 
 # Install all the header files in package/package/include
 install (DIRECTORY include/ 
         DESTINATION include
 )
 
-# Install our node and library
-install(TARGETS mono_node_cpp orb_slam3_lib
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION lib/${PROJECT_NAME}
-  INCLUDES DESTINATION include/${PROJECT_NAME}
-)
+foreach(EXECUTABLE ${EXECUTABLES})
+  install(TARGETS ${EXECUTABLE} orb_slam3_lib
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION lib/${PROJECT_NAME}
+    INCLUDES DESTINATION include/${PROJECT_NAME}
+  )
+endforeach()
 
 # Tell downstream packages where to find the headers
 ament_export_include_directories(include)

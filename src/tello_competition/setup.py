@@ -22,8 +22,10 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            'cameraShot = tello_competition.cameraShot:main',
-            'cameraCalibration = tello_competition.cameraCalibration:main'
+            'camera_shot = tello_competition.camera_shot:main',
+            'camera_calibration = tello_competition.camera_calibration:main',
+            'save_slam_map = tello_competition.save_slam_map:main',
+            'visualize_slam_map = tello_competition.visualize_slam_map:main '
         ],
     },
 )

@@ -6,10 +6,10 @@ from launch import LaunchDescription
 from launch.actions import LogInfo, OpaqueFunction, Shutdown
 from launch_ros.actions import Node
 
-TARGET_SSID = "TELLO-9A0D42"
+# TARGET_SSID = "TELLO-9A0D42"
 # TARGET_SSID = "TELLO-A04B3A"
 # TARGET_SSID = "Totalplay-5G-5970"
-# TARGET_SSID = "TELLO-5C8A2D"
+TARGET_SSID = "TELLO-5C8A2D"
 # TARGET_SSID = "ConectaUACJ"
 # TARGET_SSID = "MotherBase"
 
@@ -77,36 +77,6 @@ def generate_launch_description() -> LaunchDescription:
     )
     ld.add_action(tello_control_node)
 
-    # auto_twist: Node = Node(
-    #     package="tello_control",
-    #     executable="auto_twist",
-    #     output="screen",
-    #     namespace="/",
-    #     name="control",
-    #     respawn=False,
-    # )
-    # ld.add_action(auto_twist)
-
-    # circular_motion: Node = Node(
-    #     package="tello_control",
-    #     executable="circular_motion",
-    #     output="screen",
-    #     namespace="/",
-    #     name="control",
-    #     respawn=False,
-    # )
-    # ld.add_action(circular_motion)
-
-    # simple_state: Node = Node(
-    #     package="state_machine",
-    #     executable="simple_state",
-    #     output="screen",
-    #     namespace="/",
-    #     name="control",
-    #     respawn=False,
-    # )
-    # ld.add_action(simple_state)
-
     # yasmin_dji_tello: Node = Node(
     #     package="state_machine",
     #     executable="yasmin_dji_tello",
@@ -170,7 +140,7 @@ def generate_launch_description() -> LaunchDescription:
 
     orb_slam3 = Node(
         package="ros2_orb_slam3",
-        executable="mono_node_cpp",
+        executable="tello_slam_cpp",
         output="screen",
         name="orb_slam3",
         parameters=[
@@ -179,6 +149,19 @@ def generate_launch_description() -> LaunchDescription:
         ],
     )
     ld.add_action(orb_slam3)
+    
+    # map_saver_node = Node(
+    #     package="tello_competition",
+    #     executable="save_slam_map",
+    #     output="screen",
+    #     name="map_server",
+    #     parameters=[
+    #         {"save_directory": "/home/xtal/ros2_ws/slam_maps/tello_maps"},
+    #         {"auto_save_interval": 30.0},
+    #         {"min_points": 100}
+    #     ],
+    # )
+    # ld.add_action(map_saver_node)
     
 
     # ld.add_action(ExecuteProcess(cmd=["ros2", "bag", "record", "-a"], output="screen"))

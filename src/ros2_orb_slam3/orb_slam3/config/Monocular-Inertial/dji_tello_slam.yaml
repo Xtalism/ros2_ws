@@ -4,43 +4,52 @@
 # Camera Parameters
 #--------------------------------------------------------------------------------------------
 Camera.type: "PinHole"
-
-# Camera calibration parameters (from your dji_tello.yaml)
 Camera.fx: 913.509231713676
 Camera.fy: 910.0400126684312
 Camera.cx: 491.68440357745925
 Camera.cy: 370.02234537823824
-
-# Distortion parameters (k1, k2, p1, p2, k3)
 Camera.k1: 0.030028686154381097
 Camera.k2: -0.41492813691688024
 Camera.p1: -0.0023468495348394677
 Camera.p2: 0.0013449213489789033
 Camera.k3: 1.1716594100621758
-
-# Camera resolution
 Camera.width: 960
 Camera.height: 720
-
-# Camera frames per second
 Camera.fps: 30.0
-
-# Color order of the images (0: BGR, 1: RGB)
 Camera.RGB: 1
+
+#--------------------------------------------------------------------------------------------
+# IMU Parameters
+#--------------------------------------------------------------------------------------------
+# IMU noise (you may need to calibrate these values)
+IMU.NoiseGyro: 1.7e-4       # rad/s/sqrt(Hz)
+IMU.NoiseAcc: 2.0e-3        # m/s^2/sqrt(Hz)
+IMU.GyroWalk: 1.9e-5        # rad/s^2/sqrt(Hz)
+IMU.AccWalk: 3.0e-3         # m/s^3/sqrt(Hz)
+IMU.Frequency: 200          # Hz
+
+# Transformation from camera to IMU (needs calibration!)
+# This is the transformation from the camera frame to the IMU frame
+# Format: [R11, R12, R13, tx; R21, R22, R23, ty; R31, R32, R33, tz]
+# For now, assume IMU is at camera origin (identity + zero translation)
+Tbc: !!opencv-matrix
+   rows: 4
+   cols: 4
+   dt: f
+   data: [1.0, 0.0, 0.0, 0.0,
+          0.0, 1.0, 0.0, 0.0,
+          0.0, 0.0, 1.0, 0.0,
+          0.0, 0.0, 0.0, 1.0]
+
+# Insert KFs when IMU is not good
+IMU.InsertKFsWhenLost: 1
 
 #--------------------------------------------------------------------------------------------
 # ORB Parameters
 #--------------------------------------------------------------------------------------------
-# ORB Extractor: Number of features per image
 ORBextractor.nFeatures: 1000
-
-# ORB Extractor: Scale factor between levels in the scale pyramid
 ORBextractor.scaleFactor: 1.2
-
-# ORB Extractor: Number of levels in the scale pyramid
 ORBextractor.nLevels: 8
-
-# ORB Extractor: Fast threshold
 ORBextractor.iniThFAST: 20
 ORBextractor.minThFAST: 7
 

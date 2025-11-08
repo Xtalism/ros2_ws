@@ -2,7 +2,7 @@
 #include "ros2_orb_slam3/common.hpp"
 
 //* Constructor
-MonocularMode::MonocularMode() :Node("mono_node_cpp")
+MonocularMode::MonocularMode() :Node("tello_slam_node")
 {
     homeDir = getenv("HOME");
     
@@ -33,7 +33,7 @@ MonocularMode::MonocularMode() :Node("mono_node_cpp")
     if (vocFilePath == "file_not_set" || settingsFilePath == "file_not_set")
     {
         vocFilePath = homeDir + "/" + packagePath + "orb_slam3/Vocabulary/ORBvoc.txt.bin";
-        settingsFilePath = homeDir + "/" + packagePath + "orb_slam3/config/Monocular/";
+        settingsFilePath = homeDir + "/" + packagePath + "orb_slam3/config/Monocular-Inertial/";
     }
     
     RCLCPP_INFO(this->get_logger(), "nodeName %s", nodeName.c_str());
@@ -67,7 +67,8 @@ MonocularMode::~MonocularMode()
 }
 
 //* Callback to process image message and run SLAM node
-void MonocularMode::Img_callback(const sensor_msgs::msg::Image& msg)
+// void MonocularMode::Img_callback(const sensor_msgs::msg::Image& msg)
+void MonocularMode::Img_callback(const sensor_msgs::msg::Image::SharedPtr msg)
 {
     cv_bridge::CvImagePtr cv_ptr;
     
@@ -82,7 +83,7 @@ void MonocularMode::Img_callback(const sensor_msgs::msg::Image& msg)
     }
     
     // Use image timestamp from ROS message
-    double timestamp = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9;
+    double timestamp = msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9;
     
     //* Perform ORB-SLAM3 tracking
     Sophus::SE3f Tcw = pAgent->TrackMonocular(cv_ptr->image, timestamp);
