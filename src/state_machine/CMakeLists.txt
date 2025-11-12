@@ -62,6 +62,9 @@ endforeach()
 foreach(PROGRAM_NAME ${CPP_PROGRAMS})
   add_executable(${PROGRAM_NAME} src/${PROGRAM_NAME}.cpp)
   ament_target_dependencies(${PROGRAM_NAME} ${DEPENDENCIES})
+  target_include_directories(${PROGRAM_NAME} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>)
   if(${PROGRAM_NAME} STREQUAL "yasmin_dji_tello")
     target_link_libraries(${PROGRAM_NAME} fmt::fmt)
   endif()
@@ -71,5 +74,11 @@ endforeach()
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
 )
+
+install (DIRECTORY include/
+  DESTINATION include/${PROJECT_NAME}
+)
+
+ament_export_include_directories(include)
 
 ament_package()
